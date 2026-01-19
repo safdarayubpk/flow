@@ -208,3 +208,12 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Python 3.13+ + Standard Python libraries (built-ins) (001-console-todo-app)
+- In-memory only - N/A (001-console-todo-app)
+- Python 3.13+ (backend), TypeScript/JavaScript (frontend) + FastAPI, SQLModel, Next.js 16+, Better Auth, Tailwind CSS, PyJWT (002-fullstack-todo-app)
+- Neon PostgreSQL serverless database with SQLModel ORM (002-fullstack-todo-app)
+
+## Recent Changes
+- 001-console-todo-app: Added Python 3.13+ + Standard Python libraries (built-ins)
