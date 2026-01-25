@@ -10,7 +10,7 @@ from src.core.config import settings
 
 
 # Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # JWT token bearer
 security = HTTPBearer()
@@ -20,15 +20,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a plain password against its hash.
     """
-    plain_password = plain_password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """
-    Hash a password using bcrypt.
+    Hash a password using pbkdf2_sha256.
     """
-    password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
 
 
