@@ -25,7 +25,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     """
-    Hash a password using pbkdf2_sha256.
+    Hash a password using the default scheme (pbkdf2_sha256).
     """
     return pwd_context.hash(password)
 
