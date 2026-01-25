@@ -20,14 +20,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a plain password against its hash.
     """
-    return pwd_context.verify(plain_password[:72], hashed_password)
+    plain_password = plain_password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """
     Hash a password using bcrypt.
     """
-    return pwd_context.hash(password[:72])
+    password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+    return pwd_context.hash(password)
 
 
 def authenticate_user(session: Session, email: str, password: str) -> Optional[User]:
