@@ -5,6 +5,7 @@ from datetime import timedelta
 from src.core.security import verify_token, create_access_token
 from src.models.user import User
 from src.core.database import get_session
+from src.core.config import settings
 from sqlmodel import Session, select
 
 
@@ -17,13 +18,18 @@ def create_auth_response(response: Response, access_token: str, refresh_token: s
     Create a response with JWT tokens stored in httpOnly cookies.
     This follows ADR-001 for secure JWT token storage.
     """
+    # Use secure cookies only in production (HTTPS)
+    # In development, use lax samesite to allow cross-origin requests
+    is_secure = settings.is_production
+    samesite_policy = "strict" if is_secure else "lax"
+
     # Set access token in httpOnly cookie
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        secure=True,  # Set to True in production with HTTPS
-        samesite="strict",  # Prevent CSRF attacks
+        secure=is_secure,
+        samesite=samesite_policy,
         max_age=1800,  # 30 minutes
         path="/"
     )
@@ -34,9 +40,9 @@ def create_auth_response(response: Response, access_token: str, refresh_token: s
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=True,  # Set to True in production with HTTPS
-            samesite="strict",  # Prevent CSRF attacks
-            max_age=timedelta(days=7).total_seconds(),  # 7 days
+            secure=is_secure,
+            samesite=samesite_policy,
+            max_age=int(timedelta(days=7).total_seconds()),  # 7 days
             path="/"
         )
 

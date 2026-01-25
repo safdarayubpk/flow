@@ -1,11 +1,10 @@
 'use client';
 
 import React from 'react';
-import TaskList from '@/components/TaskList';
-import ChatWidget from '@/components/ChatWidget';
+import ChatInterface from '@/components/ChatInterface';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function TasksPage() {
+export default function ChatPage() {
   const { state, logout } = useAuth();
 
   // Show loading spinner while checking auth
@@ -20,13 +19,16 @@ export default function TasksPage() {
     );
   }
 
-  // If user is not authenticated, redirect to login
+  // If user is not authenticated, show login prompt
   if (!state.isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800">Please log in to view tasks</h2>
-          <a href="/login" className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+          <h2 className="text-2xl font-bold text-gray-800">Please log in to access the chat</h2>
+          <a
+            href="/login"
+            className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          >
             Go to Login
           </a>
         </div>
@@ -39,17 +41,17 @@ export default function TasksPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center gap-6">
-            <h1 className="text-3xl font-bold text-gray-900">Todo Tasks</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Todo Chatbot</h1>
             <nav className="flex gap-4">
               <a
                 href="/tasks"
-                className="text-indigo-600 font-medium border-b-2 border-indigo-600 pb-1"
+                className="text-gray-500 hover:text-indigo-600 font-medium pb-1"
               >
                 Tasks
               </a>
               <a
                 href="/chat"
-                className="text-gray-500 hover:text-indigo-600 font-medium pb-1"
+                className="text-indigo-600 font-medium border-b-2 border-indigo-600 pb-1"
               >
                 AI Chat
               </a>
@@ -71,21 +73,18 @@ export default function TasksPage() {
       <main>
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white shadow rounded-lg p-6 h-[calc(100vh-200px)]">
               {state.user ? (
-                <TaskList userId={state.user.id} />
+                <ChatInterface />
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">Loading tasks...</p>
+                  <p className="text-gray-500">Loading chat...</p>
                 </div>
               )}
             </div>
           </div>
         </div>
       </main>
-
-      {/* Chat Widget */}
-      <ChatWidget />
     </div>
   );
 }

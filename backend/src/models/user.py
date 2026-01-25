@@ -1,9 +1,13 @@
-from sqlmodel import SQLModel, Field, Column
+from sqlmodel import SQLModel, Field, Column, Relationship
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, List
 from sqlalchemy import DateTime
 from uuid import UUID, uuid4
 import hashlib
+
+if TYPE_CHECKING:
+    from .conversation import Conversation
+    from .message import Message
 
 
 def generate_user_id():
@@ -29,6 +33,10 @@ class User(UserBase, table=True):
     # Enforces multi-user isolation via user_id
     id: str = Field(default_factory=generate_user_id, primary_key=True)  # Using UUID string as primary key
     password_hash: str = Field(nullable=False)  # Hashed password as required by spec
+
+    # Relationships
+    conversations: List["Conversation"] = Relationship(back_populates="user")
+    messages: List["Message"] = Relationship(back_populates="user")
 
 
 class UserCreate(UserBase):

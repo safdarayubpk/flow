@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlmodel import Session
 from src.services.auth import UserService
 from src.core.database import get_session
-from src.core.auth import create_auth_response
-from src.models.user import UserCreate, User as UserModel
+from src.core.auth import create_auth_response, get_current_user
+from src.models.user import UserCreate, User as UserModel, UserRead
 from src.core.security import create_access_token
 from datetime import timedelta
 from typing import Dict
@@ -104,6 +104,15 @@ def logout_user(response: Response):
 
     logout_helper(response)
     return {"message": "Logout successful"}
+
+
+@router.get("/session", response_model=UserRead)
+def get_session_user(current_user: UserModel = Depends(get_current_user)):
+    """
+    Get the current authenticated user's session information.
+    Returns user data if valid JWT token exists in httpOnly cookie.
+    """
+    return current_user
 
 
 @router.post("/csrf-token")
