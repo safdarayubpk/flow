@@ -3,11 +3,13 @@ sqlmodel==0.0.22
 pydantic==2.10.1
 pydantic-settings==2.6.1
 uvicorn[standard]==0.32.0
-better-exceptions==0.3.4
+better-exceptions==0.3.3
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.20
 psycopg2-binary==2.9.10
 asyncpg==0.30.0
 alembic==1.13.3
-better-auth==0.0.1
+better-auth==0.0.1b11
+openai>=1.0.0
+mcp>=0.3.0

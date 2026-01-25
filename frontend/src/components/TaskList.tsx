@@ -25,9 +25,21 @@ export default function TaskList({ userId }: TaskListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Fetch tasks when component mounts or when tasks change
+  // Fetch tasks when component mounts
   useEffect(() => {
     fetchTasks();
+  }, []);
+
+  // Listen for task updates from chat widget
+  useEffect(() => {
+    const handleTaskUpdate = () => {
+      fetchTasks();
+    };
+
+    window.addEventListener('tasks-updated', handleTaskUpdate);
+    return () => {
+      window.removeEventListener('tasks-updated', handleTaskUpdate);
+    };
   }, []);
 
   const fetchTasks = async () => {
@@ -95,9 +107,12 @@ export default function TaskList({ userId }: TaskListProps) {
     }
   };
 
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setShowForm(true);
+  const handleEditTask = (id: number) => {
+    const taskToEdit = tasks.find(task => task.id === id);
+    if (taskToEdit) {
+      setEditingTask(taskToEdit);
+      setShowForm(true);
+    }
   };
 
   const handleCreateTask = () => {
@@ -166,6 +181,12 @@ export default function TaskList({ userId }: TaskListProps) {
     setEditingTask(null);
   };
 
+  const [showCompleted, setShowCompleted] = useState(true);
+
+  // Separate active and completed tasks
+  const activeTasks = tasks.filter(task => !task.completed);
+  const completedTasks = tasks.filter(task => task.completed);
+
   if (loading) {
     return <div className="text-center py-8">Loading tasks...</div>;
   }
@@ -176,8 +197,14 @@ export default function TaskList({ userId }: TaskListProps) {
 
   return (
     <div>
+      {/* Header with Add Task button */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Your Tasks</h2>
+        <h2 className="text-xl font-bold text-gray-800">
+          Your Tasks
+          <span className="ml-2 text-sm font-normal text-gray-500">
+            ({activeTasks.length} active, {completedTasks.length} completed)
+          </span>
+        </h2>
         <button
           onClick={handleCreateTask}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -188,6 +215,7 @@ export default function TaskList({ userId }: TaskListProps) {
 
       {showForm && (
         <TaskForm
+          key={editingTask?.id || 'new'}
           onSubmit={handleSubmitTask}
           onCancel={handleCancelForm}
           initialData={editingTask || undefined}
@@ -199,16 +227,63 @@ export default function TaskList({ userId }: TaskListProps) {
           No tasks found. Create your first task!
         </div>
       ) : (
-        <div>
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onToggle={handleToggleTask}
-              onDelete={handleDeleteTask}
-              onEdit={handleEditTask}
-            />
-          ))}
+        <div className="space-y-6">
+          {/* Active Tasks Section */}
+          {activeTasks.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                Active Tasks ({activeTasks.length})
+              </h3>
+              <div className="space-y-2">
+                {activeTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onToggle={handleToggleTask}
+                    onDelete={handleDeleteTask}
+                    onEdit={handleEditTask}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Tasks Section */}
+          {completedTasks.length > 0 && (
+            <div className="border-t pt-4">
+              <button
+                onClick={() => setShowCompleted(!showCompleted)}
+                className="flex items-center text-lg font-semibold text-gray-600 mb-3 hover:text-gray-800 transition-colors"
+              >
+                <span className={`transform transition-transform ${showCompleted ? 'rotate-90' : ''}`}>
+                  ▶
+                </span>
+                <span className="w-3 h-3 bg-green-500 rounded-full mx-2"></span>
+                Completed Tasks ({completedTasks.length})
+              </button>
+              {showCompleted && (
+                <div className="space-y-2 opacity-75">
+                  {completedTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onToggle={handleToggleTask}
+                      onDelete={handleDeleteTask}
+                      onEdit={handleEditTask}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Show message when all tasks are completed */}
+          {activeTasks.length === 0 && completedTasks.length > 0 && (
+            <div className="text-center py-4 bg-green-50 rounded-lg border border-green-200">
+              <span className="text-green-700 font-medium">🎉 All tasks completed! Great job!</span>
+            </div>
+          )}
         </div>
       )}
     </div>

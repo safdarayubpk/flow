@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Get API URL from environment variable
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 // Define types
 type User = {
   id: string;
@@ -24,8 +27,8 @@ type AuthAction =
   | { type: 'LOGOUT' }
   | { type: 'SET_LOADING'; payload: boolean };
 
-// Create context
-const AuthContext = createContext<{
+// Create context - exported for useAuth hook
+export const AuthContext = createContext<{
   state: AuthState;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -76,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
     isAuthenticated: false,
-    isLoading: typeof window !== 'undefined',
+    isLoading: true, // Always start with loading to prevent flash
   });
 
   const router = useRouter();
@@ -86,7 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const checkSession = async () => {
       try {
         // Attempt to verify the current session
-        const response = await fetch('/api/auth/session', {
+        const response = await fetch(`${API_URL}/api/v1/auth/session`, {
           credentials: 'include', // Include cookies in the request
         });
 
@@ -115,7 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      const response = await fetch('/api/v1/auth/login', {
+      const response = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Logout function
   const logout = async () => {
     try {
-      await fetch('/api/v1/auth/logout', {
+      await fetch(`${API_URL}/api/v1/auth/logout`, {
         method: 'POST',
         credentials: 'include', // Include cookies in the request
       });
@@ -165,7 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      const response = await fetch('/api/v1/auth/register', {
+      const response = await fetch(`${API_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -198,11 +201,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Custom hook to use auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
