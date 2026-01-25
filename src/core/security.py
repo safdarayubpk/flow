@@ -10,7 +10,7 @@ from src.core.config import settings
 
 
 # Password hashing context
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
 
 # JWT token bearer
 security = HTTPBearer()
