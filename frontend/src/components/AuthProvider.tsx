@@ -88,15 +88,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // Attempt to verify the current session
+        // Get token from localStorage
+        const token = localStorage.getItem('access_token');
+
+        if (!token) {
+          dispatch({ type: 'LOGIN_FAILURE' });
+          return;
+        }
+
+        // Verify session with Authorization header
         const response = await fetch(`${API_URL}/api/v1/auth/session`, {
-          credentials: 'include', // Include cookies in the request
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         });
 
         if (response.ok) {
           const userData = await response.json();
           dispatch({ type: 'LOGIN_SUCCESS', payload: userData });
         } else {
+          // Token invalid, clear localStorage
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
           dispatch({ type: 'LOGIN_FAILURE' });
         }
       } catch (error) {
@@ -124,15 +137,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-        credentials: 'include', // Include cookies in the request
+        credentials: 'include',
       });
 
       if (response.ok) {
         const result = await response.json();
-        // In a real app, we would get user data from the backend
-        // For now, we'll just redirect after successful login
-        router.push('/tasks');
-        dispatch({ type: 'LOGIN_SUCCESS', payload: { id: 'temp', email, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } });
+
+        // Store tokens in localStorage for cross-origin auth
+        if (result.access_token) {
+          localStorage.setItem('access_token', result.access_token);
+        }
+        if (result.refresh_token) {
+          localStorage.setItem('refresh_token', result.refresh_token);
+        }
+
+        // Fetch user data with the new token
+        const userResponse = await fetch(`${API_URL}/api/v1/auth/session`, {
+          headers: {
+            'Authorization': `Bearer ${result.access_token}`,
+          },
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          dispatch({ type: 'LOGIN_SUCCESS', payload: userData });
+          router.push('/tasks');
+        } else {
+          dispatch({ type: 'LOGIN_SUCCESS', payload: { id: 'temp', email, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } });
+          router.push('/tasks');
+        }
       } else {
         const errorData = await response.json();
         dispatch({ type: 'LOGIN_FAILURE' });
@@ -148,18 +181,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Logout function
   const logout = async () => {
     try {
+      const token = localStorage.getItem('access_token');
       await fetch(`${API_URL}/api/v1/auth/logout`, {
         method: 'POST',
-        credentials: 'include', // Include cookies in the request
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        credentials: 'include',
       });
-
-      // Clear any local storage if needed
-      localStorage.clear();
-
-      dispatch({ type: 'LOGOUT' });
-      router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);
+    } finally {
+      // Always clear localStorage and state
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      dispatch({ type: 'LOGOUT' });
+      router.push('/login');
     }
   };
 
