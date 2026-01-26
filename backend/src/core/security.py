@@ -9,8 +9,13 @@ from src.models.user import User
 from src.core.config import settings
 
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context - using pbkdf2_sha256 as primary for compatibility
+# bcrypt is kept as deprecated for legacy password verification only
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256", "bcrypt"],
+    default="pbkdf2_sha256",
+    deprecated=["bcrypt"]
+)
 
 # JWT token bearer
 security = HTTPBearer()
@@ -25,7 +30,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     """
-    Hash a password using bcrypt.
+    Hash a password using the default scheme (pbkdf2_sha256).
     """
     return pwd_context.hash(password)
 
@@ -40,7 +45,7 @@ def authenticate_user(session: Session, email: str, password: str) -> Optional[U
     return user
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a JWT access token with optional expiration time.
     """

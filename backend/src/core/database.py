@@ -3,7 +3,8 @@ from src.core.config import settings
 
 
 # Create the database engine
-engine = create_engine(settings.database_url, echo=True)
+# Only enable SQL logging in development mode
+engine = create_engine(settings.database_url, echo=not settings.is_production)
 
 
 def get_session():

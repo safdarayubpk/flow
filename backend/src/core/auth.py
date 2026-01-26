@@ -18,10 +18,18 @@ def create_auth_response(response: Response, access_token: str, refresh_token: s
     Create a response with JWT tokens stored in httpOnly cookies.
     This follows ADR-001 for secure JWT token storage.
     """
-    # Use secure cookies only in production (HTTPS)
-    # In development, use lax samesite to allow cross-origin requests
-    is_secure = settings.is_production
-    samesite_policy = "strict" if is_secure else "lax"
+    # For cross-origin requests (frontend on different domain than backend):
+    # - SameSite must be "none" to allow cross-origin cookies
+    # - Secure must be True (required when SameSite=None)
+    # In development with same origin, use "lax"
+    is_cross_origin = settings.is_production or "vercel" in settings.cors_origins.lower()
+
+    if is_cross_origin:
+        samesite_policy = "none"
+        is_secure = True
+    else:
+        samesite_policy = "lax"
+        is_secure = False
 
     # Set access token in httpOnly cookie
     response.set_cookie(
@@ -49,11 +57,23 @@ def create_auth_response(response: Response, access_token: str, refresh_token: s
 
 def get_current_user(request: Request, session: Session = Depends(get_session)) -> User:
     """
-    Get the current user from the JWT token in the httpOnly cookie.
-    This follows ADR-001 for secure JWT token storage and handles expired tokens gracefully.
+    Get the current user from JWT token.
+    Supports both:
+    1. Authorization header (for cross-origin/localStorage scenarios)
+    2. httpOnly cookie (for same-origin scenarios)
     """
-    # Get token from httpOnly cookie
-    token_str = request.cookies.get("access_token")
+    token_str = None
+
+    # First, try to get token from Authorization header (cross-origin support)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token_str = auth_header[7:]
+
+    # If no Authorization header, try httpOnly cookie
+    if not token_str:
+        token_str = request.cookies.get("access_token")
+        if token_str and token_str.startswith("Bearer "):
+            token_str = token_str[7:]
 
     if not token_str:
         raise HTTPException(
@@ -61,10 +81,6 @@ def get_current_user(request: Request, session: Session = Depends(get_session)) 
             detail="No access token provided",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    # Remove "Bearer " prefix if present
-    if token_str.startswith("Bearer "):
-        token_str = token_str[7:]
 
     try:
         payload = verify_token(token_str)
