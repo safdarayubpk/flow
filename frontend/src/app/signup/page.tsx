@@ -9,23 +9,33 @@ const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent double submission
+    if (isSubmitting) return;
+
+    setError(''); // Clear previous errors
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       await register(email, password, confirmPassword);
-      router.push('/login'); // Redirect to login page after successful registration
+      // AuthProvider handles the redirect to /login
     } catch (err) {
       setError('Registration failed. Please try again.');
       console.error('Registration error:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -98,9 +108,10 @@ const SignupPage = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign up
+              {isSubmitting ? 'Signing up...' : 'Sign up'}
             </button>
           </div>
 
