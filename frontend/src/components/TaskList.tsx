@@ -198,17 +198,20 @@ export default function TaskList({ userId }: TaskListProps) {
   return (
     <div>
       {/* Header with Add Task button */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-800">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800">
           Your Tasks
-          <span className="ml-2 text-sm font-normal text-gray-500">
+          <span className="block sm:inline sm:ml-2 text-sm font-normal text-gray-500">
             ({activeTasks.length} active, {completedTasks.length} completed)
           </span>
         </h2>
         <button
           onClick={handleCreateTask}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="inline-flex items-center px-4 py-2.5 sm:py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 min-h-[44px] sm:min-h-0 w-full sm:w-auto justify-center"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
           Add Task
         </button>
       </div>
