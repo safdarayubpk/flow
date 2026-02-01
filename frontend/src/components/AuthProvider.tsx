@@ -1,10 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Get API URL from environment variable
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use relative URL for API calls - requests go through Next.js API proxy routes
+// This allows the frontend server to proxy requests to the backend service
+const API_URL = '';
 
 // Define types
 type User = {
@@ -18,6 +19,7 @@ type AuthState = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAuthenticating: boolean; // Track if login/register is in progress
 };
 
 type AuthAction =
@@ -25,7 +27,8 @@ type AuthAction =
   | { type: 'LOGIN_SUCCESS'; payload: User }
   | { type: 'LOGIN_FAILURE' }
   | { type: 'LOGOUT' }
-  | { type: 'SET_LOADING'; payload: boolean };
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SESSION_CHECK_COMPLETE' };
 
 // Create context - exported for useAuth hook
 export const AuthContext = createContext<{
@@ -42,6 +45,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         isLoading: true,
+        isAuthenticating: true,
       };
     case 'LOGIN_SUCCESS':
       return {
@@ -49,6 +53,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: action.payload,
         isAuthenticated: true,
         isLoading: false,
+        isAuthenticating: false,
       };
     case 'LOGIN_FAILURE':
       return {
@@ -56,6 +61,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        isAuthenticating: false,
       };
     case 'LOGOUT':
       return {
@@ -63,11 +69,25 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        isAuthenticating: false,
       };
     case 'SET_LOADING':
+      // Don't change loading state if authentication is in progress
+      if (state.isAuthenticating) {
+        return state;
+      }
       return {
         ...state,
         isLoading: action.payload,
+      };
+    case 'SESSION_CHECK_COMPLETE':
+      // Only update if not currently authenticating
+      if (state.isAuthenticating) {
+        return state;
+      }
+      return {
+        ...state,
+        isLoading: false,
       };
     default:
       return state;
@@ -80,19 +100,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user: null,
     isAuthenticated: false,
     isLoading: true, // Always start with loading to prevent flash
+    isAuthenticating: false, // Not authenticating initially
   });
 
   const router = useRouter();
+  const sessionCheckCompleted = useRef(false);
 
   // Check for existing session on mount
   useEffect(() => {
+    // Prevent multiple session checks
+    if (sessionCheckCompleted.current) {
+      return;
+    }
+
     const checkSession = async () => {
       try {
         // Get token from localStorage
         const token = localStorage.getItem('access_token');
 
         if (!token) {
-          dispatch({ type: 'LOGIN_FAILURE' });
+          dispatch({ type: 'SESSION_CHECK_COMPLETE' });
           return;
         }
 
@@ -110,13 +137,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Token invalid, clear localStorage
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
-          dispatch({ type: 'LOGIN_FAILURE' });
+          dispatch({ type: 'SESSION_CHECK_COMPLETE' });
         }
       } catch (error) {
         console.error('Session check failed:', error);
-        dispatch({ type: 'LOGIN_FAILURE' });
+        dispatch({ type: 'SESSION_CHECK_COMPLETE' });
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        sessionCheckCompleted.current = true;
       }
     };
 
