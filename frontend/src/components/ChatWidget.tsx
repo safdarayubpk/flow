@@ -10,16 +10,16 @@ export default function ChatWidget() {
     <>
       {/* Chat Window Overlay */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 w-[calc(100vw-1rem)] sm:w-96 h-[calc(100vh-6rem)] sm:h-[500px] max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-5 duration-300">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-indigo-600 text-white rounded-t-lg">
+          <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-indigo-600 text-white rounded-t-lg">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="font-medium">AI Assistant</span>
+              <span className="font-medium text-sm sm:text-base">AI Assistant</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-white hover:bg-indigo-700 rounded p-1 transition-colors"
+              className="text-white hover:bg-indigo-700 rounded p-2 min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
               title="Close chat"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -38,7 +38,7 @@ export default function ChatWidget() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 rounded-full p-4 shadow-lg transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 z-50 ${
+        className={`fixed bottom-4 sm:bottom-6 right-2 sm:right-6 rounded-full p-3 sm:p-4 shadow-lg transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 z-50 min-h-[48px] min-w-[48px] ${
           isOpen
             ? 'bg-gray-600 hover:bg-gray-700'
             : 'bg-indigo-600 hover:bg-indigo-700'
