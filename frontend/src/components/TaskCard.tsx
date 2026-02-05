@@ -1,9 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import PriorityBadge from './PriorityBadge';
 import TagChips from './TagChips';
 
@@ -49,25 +46,27 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <Card className={`w-full ${className}`}>
-      <CardContent className="p-4">
-        <div className="flex items-start space-x-3">
-          <Checkbox
+    <div className={`flex flex-col p-3 sm:p-4 mb-3 bg-white shadow rounded-lg border border-gray-200 ${className}`}>
+      <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+          <input
+            type="checkbox"
             checked={task.completed}
-            onCheckedChange={() => onToggle(task.id)}
+            onChange={() => onToggle(task.id)}
+            className="mt-1 h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
             aria-label={`Mark task ${task.title} as ${task.completed ? 'incomplete' : 'complete'}`}
           />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-1">
-              <h3 className={`font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+              <h3 className={`text-base sm:text-lg font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                 {task.title}
               </h3>
               {task.priority && <PriorityBadge priority={task.priority} />}
             </div>
 
             {task.description && (
-              <p className={`text-sm mb-2 ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-sm mb-2 break-words ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
                 {task.description}
               </p>
             )}
@@ -79,35 +78,38 @@ const TaskCard: React.FC<TaskCardProps> = ({
             {(task.due_date || task.recurrence_rule || task.reminder_enabled) && (
               <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
                 {task.due_date && (
-                  <div className="flex items-center">
-                    <span>📅 Due: {formatDate(task.due_date)}</span>
-                  </div>
+                  <span>Due: {formatDate(task.due_date)}</span>
                 )}
                 {task.recurrence_rule && (
-                  <div className="flex items-center">
-                    <span>🔄 Recurring</span>
-                  </div>
+                  <span>Recurring</span>
                 )}
                 {task.reminder_enabled && (
-                  <div className="flex items-center">
-                    <span>🔔 Reminder</span>
-                  </div>
+                  <span>Reminder</span>
                 )}
               </div>
             )}
           </div>
         </div>
-      </CardContent>
 
-      <CardFooter className="flex justify-between p-4 border-t">
-        <Button variant="outline" size="sm" onClick={() => onEdit(task.id)}>
-          Edit
-        </Button>
-        <Button variant="destructive" size="sm" onClick={() => onDelete(task.id)}>
-          Delete
-        </Button>
-      </CardFooter>
-    </Card>
+        <div className="flex flex-row gap-2 ml-7 sm:ml-0">
+          <button
+            onClick={() => onEdit(task.id)}
+            className="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onDelete(task.id)}
+            className="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 min-h-[44px] sm:min-h-0"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div className="mt-2 text-xs text-gray-500 ml-7 sm:ml-0">
+        {new Date(task.created_at).toLocaleDateString()}
+      </div>
+    </div>
   );
 };
 

@@ -388,7 +388,7 @@ export default function TaskList({ userId }: TaskListProps) {
           {/* Show message when all tasks are completed */}
           {activeTasks.length === 0 && completedTasks.length > 0 && (
             <div className="text-center py-4 bg-green-50 rounded-lg border border-green-200">
-              <span className="text-green-700 font-medium">🎉 All tasks completed! Great job!</span>
+              <span className="text-green-700 font-medium">All tasks completed! Great job!</span>
             </div>
           )}
         </div>

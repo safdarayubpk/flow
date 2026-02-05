@@ -27,9 +27,9 @@ def main():
     try:
         cli_interface.run()
     except KeyboardInterrupt:
-        print("\n\n👋 Goodbye! Thanks for using the Console Todo App.")
+        print("\n\nGoodbye! Thanks for using the Console Todo App.")
     except Exception as e:
-        print(f"\n❌ An unexpected error occurred: {e}")
+        print(f"\nAn unexpected error occurred: {e}")
         print("Application terminating.")
 
 
