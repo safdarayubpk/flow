@@ -1,0 +1,57 @@
+# Default values for todo-backend Helm chart
+
+# Image configuration
+image:
+  repository: todo-backend
+  tag: k8s
+  pullPolicy: IfNotPresent
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Pod security context (pod-level settings only)
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Container security context
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Environment variables
+env:
+  LOG_LEVEL: "INFO"
+  CORS_ORIGINS: "http://localhost:3000,http://localhost:3001,http://localhost:8080,https://todo-frontend-service.default.svc.cluster.local"
+
+# Replica configuration
+replicaCount: 1
+
+# Node selector (optional)
+nodeSelector: {}
+
+# Tolerations (optional)
+tolerations: []
+
+# Affinity (optional)
+affinity: {}

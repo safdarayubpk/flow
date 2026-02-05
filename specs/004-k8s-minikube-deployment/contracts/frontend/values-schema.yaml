@@ -1,0 +1,54 @@
+# Frontend Helm Chart Values Schema
+# This defines the configurable values for the todo-frontend Helm chart
+
+# Chart: todo-frontend
+# Description: Next.js frontend for the Todo application
+
+replicaCount: 1  # Number of pod replicas (keep at 1 for local dev)
+
+image:
+  repository: todo-frontend  # Docker image name
+  tag: k8s                   # Image tag (k8s for Kubernetes build)
+  pullPolicy: Never          # Never pull - use minikube image load
+
+service:
+  type: ClusterIP            # Service type (ClusterIP for internal access)
+  port: 80                   # Service port (external)
+  targetPort: 3000           # Container port (Next.js default)
+
+resources:
+  requests:
+    memory: "256Mi"          # Minimum memory (Next.js needs more)
+    cpu: "100m"              # Minimum CPU
+  limits:
+    memory: "512Mi"          # Maximum memory
+    cpu: "500m"              # Maximum CPU
+
+env:
+  NODE_ENV: "production"              # Node environment
+  NEXT_TELEMETRY_DISABLED: "1"        # Disable telemetry
+  # Backend URL uses Kubernetes service discovery
+  NEXT_PUBLIC_API_URL: "http://todo-backend-service:8000"
+
+healthCheck:
+  path: /api/health          # Health check endpoint (Next.js API route)
+  port: 3000                 # Health check port
+
+securityContext:
+  runAsNonRoot: true         # Don't run as root
+  runAsUser: 1000            # Run as user 1000
+  runAsGroup: 1000           # Run as group 1000
+  fsGroup: 1000              # File system group
+  readOnlyRootFilesystem: true   # Immutable filesystem
+  allowPrivilegeEscalation: false  # No privilege escalation
+
+# Writable paths for Next.js (mounted as emptyDir)
+writablePaths:
+  - /app/.next/cache         # Next.js cache
+  - /tmp                     # Temporary files
+
+# Labels for all resources
+labels:
+  app.kubernetes.io/name: todo-frontend
+  app.kubernetes.io/component: frontend
+  app.kubernetes.io/part-of: todo-app

@@ -1,0 +1,304 @@
+openapi: 3.0.3
+info:
+  title: Todo Application API
+  description: API for managing todo tasks with user authentication and data isolation
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.todoapp.com
+    description: Production server
+paths:
+  /api/tasks:
+    get:
+      summary: Get all tasks for the current user
+      description: Retrieve a list of all tasks that belong to the authenticated user
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of tasks for the current user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+    post:
+      summary: Create a new task
+      description: Create a new task for the authenticated user
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/tasks/{taskId}:
+    get:
+      summary: Get a specific task
+      description: Retrieve a specific task by ID if it belongs to the authenticated user
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      summary: Update a task
+      description: Update an existing task if it belongs to the authenticated user
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      summary: Delete a task
+      description: Delete a task if it belongs to the authenticated user
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/tasks/{taskId}/complete:
+    patch:
+      summary: Toggle task completion status
+      description: Toggle the completion status of a task if it belongs to the authenticated user
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Task completion status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - user_id
+        - title
+        - completed
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: Unique identifier for the task
+        user_id:
+          type: string
+          example: "user-12345"
+          description: ID of the user who owns the task
+        title:
+          type: string
+          example: "Buy groceries"
+          minLength: 1
+          maxLength: 200
+          description: Task title (1-200 characters)
+        description:
+          type: string
+          example: "Milk, eggs, bread"
+          description: Optional task description
+        completed:
+          type: boolean
+          example: false
+          description: Whether the task is completed
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-01-19T10:00:00Z"
+          description: When the task was created
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-01-19T10:00:00Z"
+          description: When the task was last updated
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "Buy groceries"
+          minLength: 1
+          maxLength: 200
+          description: Task title (1-200 characters)
+        description:
+          type: string
+          example: "Milk, eggs, bread"
+          description: Optional task description
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Buy groceries"
+          minLength: 1
+          maxLength: 200
+          description: Task title (1-200 characters)
+        description:
+          type: string
+          example: "Milk, eggs, bread"
+          description: Optional task description
+        completed:
+          type: boolean
+          example: false
+          description: Whether the task is completed
+
+  responses:
+    BadRequestError:
+      description: Bad request - invalid input data
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Title must be between 1 and 200 characters"
+
+    UnauthorizedError:
+      description: Unauthorized - invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Not authenticated"
+
+    ForbiddenError:
+      description: Forbidden - user does not have permission to access this resource
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Access denied - not your task"
+
+    NotFoundError:
+      description: Not found - the requested resource does not exist
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Task not found"
