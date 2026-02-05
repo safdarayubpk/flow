@@ -17,8 +17,27 @@ from src.models.message import Message
 
 
 def create_db_and_tables():
-    """Create database tables on startup"""
+    """Create database tables on startup and add missing columns for Phase V.1"""
     SQLModel.metadata.create_all(engine)
+
+    # Add missing columns to existing tables (safe ALTER TABLE IF NOT EXISTS)
+    from sqlalchemy import text, inspect
+    inspector = inspect(engine)
+
+    with engine.connect() as conn:
+        # Check and add missing columns to 'task' table
+        if inspector.has_table("task"):
+            existing_cols = {col["name"] for col in inspector.get_columns("task")}
+            migrations = [
+                ("priority", "VARCHAR(20)"),
+                ("due_date", "TIMESTAMP"),
+                ("recurrence_rule", "VARCHAR(200)"),
+                ("deleted_at", "TIMESTAMP"),
+            ]
+            for col_name, col_type in migrations:
+                if col_name not in existing_cols:
+                    conn.execute(text(f'ALTER TABLE task ADD COLUMN {col_name} {col_type}'))
+            conn.commit()
 
 
 def create_app():
