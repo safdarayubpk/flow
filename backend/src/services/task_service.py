@@ -24,6 +24,9 @@ class TaskService:
             title=task_create.title,
             description=task_create.description,
             completed=task_create.completed or False,
+            priority=task_create.priority,
+            due_date=task_create.due_date,
+            recurrence_rule=task_create.recurrence_rule,
             user_id=user_id
         )
 
@@ -133,3 +136,72 @@ class TaskService:
         active_tasks.sort(key=lambda x: x.created_at, reverse=True)
 
         return active_tasks
+
+    @staticmethod
+    def get_filtered_tasks(
+        *,
+        session: Session,
+        user_id: str,
+        priority: Optional[str] = None,
+        due_date_before: Optional[datetime.date] = None,
+        sort_field: Optional[str] = "created_at",
+        order: Optional[str] = "desc",
+        recurring: Optional[bool] = None,
+        search: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100
+    ) -> List[Task]:
+        """
+        Get tasks with advanced filtering and sorting options.
+        This implements ADR-002 for user isolation by filtering by user_id.
+        """
+        # Build the query with user isolation
+        query = select(Task).where(Task.user_id == user_id, Task.deleted_at.is_(None))
+
+        # Apply filters
+        if priority:
+            query = query.where(Task.priority == priority)
+
+        if due_date_before:
+            from datetime import datetime
+            # Convert date to datetime for comparison (end of day)
+            due_date_end = datetime.combine(due_date_before, datetime.max.time())
+            query = query.where(Task.due_date <= due_date_end)
+
+        if recurring is not None:
+            if recurring:
+                query = query.where(Task.recurrence_rule.is_not(None))
+            else:
+                query = query.where(Task.recurrence_rule.is_(None))
+
+        if search:
+            search_lower = f"%{search.lower()}%"
+            from sqlalchemy import or_
+            query = query.where(
+                or_(
+                    Task.title.ilike(search_lower),
+                    Task.description.ilike(search_lower) if Task.description is not None else False
+                )
+            )
+
+        # Apply sorting
+        sort_columns = {
+            "priority": Task.priority,
+            "due_date": Task.due_date,
+            "title": Task.title,
+            "created_at": Task.created_at
+        }
+
+        if sort_field in sort_columns:
+            if order == "desc":
+                query = query.order_by(desc(sort_columns[sort_field]))
+            else:
+                query = query.order_by(sort_columns[sort_field])
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        # Execute query
+        tasks = session.exec(query).all()
+
+        return tasks
