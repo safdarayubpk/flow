@@ -97,7 +97,7 @@ export default function TaskList({ userId }: TaskListProps) {
       queryParams.append('limit', '100');
 
       const queryString = queryParams.toString();
-      const url = `/api/v1/tasks/${queryString ? '?' + queryString : ''}`;
+      const url = `/api/v1/tasks${queryString ? '?' + queryString : ''}`;
 
       const response = await apiCall(url, {
         method: 'GET',
@@ -216,7 +216,7 @@ export default function TaskList({ userId }: TaskListProps) {
         });
       } else {
         // Create new task
-        response = await apiCall('/api/v1/tasks/', {
+        response = await apiCall('/api/v1/tasks', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

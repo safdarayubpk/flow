@@ -19,7 +19,7 @@ export type Task = {
 // Function to get all tasks for the current user
 export const getTasks = async (): Promise<Task[]> => {
   try {
-    const response = await baseApiCall('/api/v1/tasks/', {
+    const response = await baseApiCall('/api/v1/tasks', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export const getTasks = async (): Promise<Task[]> => {
 // Function to create a new task
 export const createTask = async (taskData: { title: string; description?: string }): Promise<Task> => {
   try {
-    const response = await baseApiCall('/api/v1/tasks/', {
+    const response = await baseApiCall('/api/v1/tasks', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

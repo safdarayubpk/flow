@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://todo-backend:8000';
 
 async function proxyRequest(request: NextRequest, path: string[]) {
-  const url = `${BACKEND_URL}/api/v1/tasks/${path.join('/')}`;
+  const queryString = request.nextUrl.search;
+  const url = `${BACKEND_URL}/api/v1/tasks/${path.join('/')}${queryString}`;
 
   const headers = new Headers();
   headers.set('Content-Type', 'application/json');
