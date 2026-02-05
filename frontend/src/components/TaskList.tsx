@@ -5,6 +5,7 @@ import SearchBar from './SearchBar';
 import FilterPanel from './FilterPanel';
 import SortDropdown from './SortDropdown';
 import { apiCall } from '@/lib/api';
+import { toast } from 'sonner';
 
 // Define the Task type
 type Task = {
@@ -144,12 +145,15 @@ export default function TaskList({ userId }: TaskListProps) {
         setTasks(tasks.map(task =>
           task.id === id ? { ...task, completed: updatedTask.completed } : task
         ));
+        toast.success(updatedTask.completed ? 'Task completed' : 'Task reopened');
       } else {
         const errorData = await response.json();
         setError(errorData.detail || 'Failed to update task');
+        toast.error('Failed to update task');
       }
     } catch (err) {
       setError('An error occurred while updating the task');
+      toast.error('An error occurred while updating the task');
       console.error('Error updating task:', err);
     }
   };
@@ -166,12 +170,15 @@ export default function TaskList({ userId }: TaskListProps) {
 
       if (response.ok) {
         setTasks(tasks.filter(task => task.id !== id));
+        toast.success('Task deleted');
       } else {
         const errorData = await response.json();
         setError(errorData.detail || 'Failed to delete task');
+        toast.error('Failed to delete task');
       }
     } catch (err) {
       setError('An error occurred while deleting the task');
+      toast.error('An error occurred while deleting the task');
       console.error('Error deleting task:', err);
     }
   };
@@ -241,9 +248,11 @@ export default function TaskList({ userId }: TaskListProps) {
           setTasks(tasks.map(task =>
             task.id === taskData.id ? newTask : task
           ));
+          toast.success('Task updated');
         } else {
           // Add new task to the list
           setTasks([newTask, ...tasks]);
+          toast.success('Task created');
         }
 
         // Close the form
@@ -252,9 +261,11 @@ export default function TaskList({ userId }: TaskListProps) {
       } else {
         const errorData = await response.json();
         setError(errorData.detail || 'Failed to save task');
+        toast.error(errorData.detail || 'Failed to save task');
       }
     } catch (err) {
       setError('An error occurred while saving the task');
+      toast.error('An error occurred while saving the task');
       console.error('Error saving task:', err);
     }
   };

@@ -1,7 +1,9 @@
 from sqlmodel import Session, select, desc
 from fastapi import HTTPException, status
-from typing import List, Optional
+from typing import List, Optional, Dict
 from src.models.task import Task, TaskCreate, TaskUpdate
+from src.models.tag import Tag
+from src.models.task_tag_link import TaskTagLink
 from src.models.user import User
 from src.core.isolation import ensure_user_owns_resource, get_user_resources
 from datetime import datetime
@@ -27,6 +29,7 @@ class TaskService:
             priority=task_create.priority,
             due_date=task_create.due_date,
             recurrence_rule=task_create.recurrence_rule,
+            reminder_enabled=task_create.reminder_enabled,
             user_id=user_id
         )
 
@@ -65,6 +68,9 @@ class TaskService:
 
         # Update only the fields that are provided
         update_data = task_update.dict(exclude_unset=True)
+
+        # Remove tags from direct field update (handled separately via TaskTagLink)
+        update_data.pop("tags", None)
 
         # Handle soft delete - if a task is "deleted", set the deleted_at timestamp
         if update_data.get("deleted_at"):
@@ -205,3 +211,87 @@ class TaskService:
         tasks = session.exec(query).all()
 
         return tasks
+
+    @staticmethod
+    def resolve_and_link_tags(*, session: Session, task_id: int, user_id: str, tag_names: List[str]) -> None:
+        """
+        Resolve tag names to Tag records (get-or-create) and create TaskTagLink entries.
+        Replaces all existing tag associations for the task.
+        """
+        # Remove existing links for this task
+        existing_links = session.exec(
+            select(TaskTagLink).where(TaskTagLink.task_id == task_id)
+        ).all()
+        for link in existing_links:
+            session.delete(link)
+
+        # For each tag name, find or create the tag, then link it
+        for tag_name in tag_names:
+            tag_name = tag_name.strip()
+            if not tag_name:
+                continue
+
+            # Find existing tag for this user
+            tag = session.exec(
+                select(Tag).where(Tag.name == tag_name, Tag.user_id == user_id)
+            ).first()
+
+            # Create tag if it doesn't exist
+            if not tag:
+                tag = Tag(name=tag_name, user_id=user_id)
+                session.add(tag)
+                session.flush()  # Get the tag ID
+
+            # Create the link
+            link = TaskTagLink(task_id=task_id, tag_id=tag.id)
+            session.add(link)
+
+        session.commit()
+
+    @staticmethod
+    def get_task_tag_names(*, session: Session, task_id: int) -> List[str]:
+        """Get list of tag names for a specific task."""
+        tags = session.exec(
+            select(Tag.name)
+            .join(TaskTagLink, Tag.id == TaskTagLink.tag_id)
+            .where(TaskTagLink.task_id == task_id)
+        ).all()
+        return list(tags)
+
+    @staticmethod
+    def get_tasks_tag_names_batch(*, session: Session, task_ids: List[int]) -> Dict[int, List[str]]:
+        """Get tag names for multiple tasks in a single query."""
+        if not task_ids:
+            return {}
+
+        results = session.exec(
+            select(TaskTagLink.task_id, Tag.name)
+            .join(Tag, Tag.id == TaskTagLink.tag_id)
+            .where(TaskTagLink.task_id.in_(task_ids))
+        ).all()
+
+        tag_map: Dict[int, List[str]] = {tid: [] for tid in task_ids}
+        for task_id, tag_name in results:
+            tag_map[task_id].append(tag_name)
+
+        return tag_map
+
+    @staticmethod
+    def enrich_task_response(task: Task, tags: List[str]) -> dict:
+        """Convert a Task ORM object + tag names into a dict suitable for TaskRead."""
+        data = {
+            "id": task.id,
+            "user_id": task.user_id,
+            "title": task.title,
+            "description": task.description,
+            "completed": task.completed,
+            "priority": task.priority,
+            "due_date": task.due_date,
+            "recurrence_rule": task.recurrence_rule,
+            "reminder_enabled": task.reminder_enabled,
+            "created_at": task.created_at,
+            "updated_at": task.updated_at,
+            "deleted_at": task.deleted_at,
+            "tags": tags,
+        }
+        return data

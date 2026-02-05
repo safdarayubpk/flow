@@ -14,6 +14,7 @@ from src.models.task import Task
 from src.models.tag import Tag
 from src.models.conversation import Conversation
 from src.models.message import Message
+from src.models.task_tag_link import TaskTagLink
 
 
 def create_db_and_tables():
@@ -33,6 +34,7 @@ def create_db_and_tables():
                 ("due_date", "TIMESTAMP"),
                 ("recurrence_rule", "VARCHAR(200)"),
                 ("deleted_at", "TIMESTAMP"),
+                ("reminder_enabled", "BOOLEAN DEFAULT FALSE"),
             ]
             for col_name, col_type in migrations:
                 if col_name not in existing_cols:

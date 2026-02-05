@@ -18,6 +18,7 @@ def list_tasks_advanced(
     session: Session = Depends(get_session),
     priority: Optional[str] = Query(None, regex=r"^(high|medium|low)$"),
     due_date_before: Optional[date] = Query(None),
+    tags: Optional[List[str]] = Query(None, description="Filter by tag names"),
     sort: Optional[str] = Query(None, regex=r"^(priority|due_date|title|created_at)$"),
     order: Optional[str] = Query("desc", regex=r"^(asc|desc)$"),
     recurring: Optional[bool] = Query(None),
@@ -43,7 +44,22 @@ def list_tasks_advanced(
             skip=skip,
             limit=limit
         )
-        return tasks
+
+        # Enrich tasks with tag names (batch query for efficiency)
+        task_ids = [t.id for t in tasks]
+        tag_map = TaskService.get_tasks_tag_names_batch(session=session, task_ids=task_ids)
+
+        # Filter by tags if requested
+        if tags:
+            tags_lower = {t.lower() for t in tags}
+            tasks = [t for t in tasks if any(
+                tn.lower() in tags_lower for tn in tag_map.get(t.id, [])
+            )]
+
+        return [
+            TaskService.enrich_task_response(t, tag_map.get(t.id, []))
+            for t in tasks
+        ]
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -69,13 +85,28 @@ def create_task(
                 detail="Task title must be between 1 and 200 characters"
             )
 
+        # Extract tags before creating task (tags handled separately via TaskTagLink)
+        tag_names = task_create.tags or []
+
         # Create task with user_id assignment
         task = TaskService.create_task(
             session=session,
             task_create=task_create,
             user_id=current_user.id
         )
-        return task
+
+        # Link tags to the task
+        if tag_names:
+            TaskService.resolve_and_link_tags(
+                session=session,
+                task_id=task.id,
+                user_id=current_user.id,
+                tag_names=tag_names
+            )
+
+        # Return enriched response with tags
+        task_tags = TaskService.get_task_tag_names(session=session, task_id=task.id)
+        return TaskService.enrich_task_response(task, task_tags)
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
@@ -110,7 +141,8 @@ def get_task(
                 detail="Task not found"
             )
 
-        return task
+        task_tags = TaskService.get_task_tag_names(session=session, task_id=task.id)
+        return TaskService.enrich_task_response(task, task_tags)
     except HTTPException:
         # Re-raise HTTP exceptions (like 404 for not found)
         raise
@@ -141,13 +173,27 @@ def update_task(
                     detail="Task title must be between 1 and 200 characters"
                 )
 
+        # Extract tags before updating (handled separately via TaskTagLink)
+        tag_names = task_update.tags
+
         task = TaskService.update_task(
             session=session,
             task_id=task_id,
             task_update=task_update,
             user_id=current_user.id
         )
-        return task
+
+        # Sync tags if provided (None means not provided, [] means clear all tags)
+        if tag_names is not None:
+            TaskService.resolve_and_link_tags(
+                session=session,
+                task_id=task.id,
+                user_id=current_user.id,
+                tag_names=tag_names
+            )
+
+        task_tags = TaskService.get_task_tag_names(session=session, task_id=task.id)
+        return TaskService.enrich_task_response(task, task_tags)
     except HTTPException:
         # Re-raise HTTP exceptions (like 404 for not found, 403 for forbidden)
         raise
@@ -217,7 +263,8 @@ def toggle_task_completion(
             task_id=task_id,
             user_id=current_user.id
         )
-        return task
+        task_tags = TaskService.get_task_tag_names(session=session, task_id=task.id)
+        return TaskService.enrich_task_response(task, task_tags)
     except HTTPException:
         # Re-raise HTTP exceptions (like 404 for not found, 403 for forbidden)
         raise
@@ -270,7 +317,8 @@ def update_task_recurring(
             user_id=current_user.id
         )
 
-        return updated_task
+        task_tags = TaskService.get_task_tag_names(session=session, task_id=updated_task.id)
+        return TaskService.enrich_task_response(updated_task, task_tags)
     except HTTPException:
         # Re-raise HTTP exceptions (like 404 for not found, 403 for forbidden)
         raise
@@ -327,7 +375,8 @@ def update_task_due_date(
             user_id=current_user.id
         )
 
-        return updated_task
+        task_tags = TaskService.get_task_tag_names(session=session, task_id=updated_task.id)
+        return TaskService.enrich_task_response(updated_task, task_tags)
     except HTTPException:
         # Re-raise HTTP exceptions (like 404 for not found, 403 for forbidden)
         raise

@@ -3,6 +3,7 @@
 import React from 'react';
 import TaskList from '@/components/TaskList';
 import ChatWidget from '@/components/ChatWidget';
+import NotificationPermissionHandler from '@/components/NotificationPermissionHandler';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function TasksPage() {
@@ -71,6 +72,7 @@ export default function TasksPage() {
       <main>
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
+            <NotificationPermissionHandler className="mb-4" />
             <div className="bg-white shadow rounded-lg p-6">
               {state.user ? (
                 <TaskList userId={state.user.id} />

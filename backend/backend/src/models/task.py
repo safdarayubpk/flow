@@ -16,6 +16,7 @@ class TaskBase(SQLModel):
     priority: Optional[str] = Field(default=None, max_length=20)  # Priority: high, medium, low
     due_date: Optional[datetime] = Field(default=None)  # Due date for the task
     recurrence_rule: Optional[str] = Field(default=None, max_length=200)  # RFC 5545 recurrence rule
+    reminder_enabled: bool = Field(default=False)  # Whether reminders are enabled for this task
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(
         default_factory=datetime.utcnow,
@@ -41,6 +42,7 @@ class Task(TaskBase, table=True):
 class TaskCreate(TaskBase):
     """Schema for creating a new task"""
     title: str = Field(min_length=1, max_length=200)  # Required, 1-200 characters
+    tags: Optional[List[str]] = None  # Tag names to associate with the task
 
 
 class TaskUpdate(SQLModel):
@@ -51,12 +53,15 @@ class TaskUpdate(SQLModel):
     priority: Optional[str] = Field(default=None, max_length=20)  # Priority: high, medium, low
     due_date: Optional[datetime] = Field(default=None)  # Due date for the task
     recurrence_rule: Optional[str] = Field(default=None, max_length=200)  # RFC 5545 recurrence rule
+    reminder_enabled: Optional[bool] = None  # Whether reminders are enabled
+    tags: Optional[List[str]] = None  # Tag names to associate with the task
 
 
 class TaskRead(TaskBase):
     """Schema for reading task data"""
     id: int
     user_id: str
+    tags: List[str] = []  # Tag names associated with the task
 
     class Config:
         from_attributes = True
