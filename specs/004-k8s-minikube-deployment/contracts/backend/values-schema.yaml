@@ -1,0 +1,54 @@
+# Backend Helm Chart Values Schema
+# This defines the configurable values for the todo-backend Helm chart
+
+# Chart: todo-backend
+# Description: FastAPI backend for the Todo application
+
+replicaCount: 1  # Number of pod replicas (keep at 1 for local dev)
+
+image:
+  repository: todo-backend  # Docker image name
+  tag: k8s                  # Image tag (k8s for Kubernetes build)
+  pullPolicy: Never         # Never pull - use minikube image load
+
+service:
+  type: ClusterIP           # Service type (ClusterIP for internal access)
+  port: 80                  # Service port (external)
+  targetPort: 8000          # Container port (FastAPI default)
+
+resources:
+  requests:
+    memory: "128Mi"         # Minimum memory
+    cpu: "100m"             # Minimum CPU (100 millicores)
+  limits:
+    memory: "256Mi"         # Maximum memory
+    cpu: "500m"             # Maximum CPU
+
+env:
+  LOG_LEVEL: "info"         # Logging level
+  PORT: "8000"              # FastAPI port
+
+# Secrets are referenced from kubernetes secret 'todo-secrets'
+# Required secrets:
+#   - DATABASE_URL
+#   - JWT_SECRET
+#   - BETTER_AUTH_SECRET
+#   - OPENAI_API_KEY
+
+healthCheck:
+  path: /health             # Health check endpoint
+  port: 8000                # Health check port
+
+securityContext:
+  runAsNonRoot: true        # Don't run as root
+  runAsUser: 1000           # Run as user 1000
+  runAsGroup: 1000          # Run as group 1000
+  fsGroup: 1000             # File system group
+  readOnlyRootFilesystem: true  # Immutable filesystem
+  allowPrivilegeEscalation: false  # No privilege escalation
+
+# Labels for all resources
+labels:
+  app.kubernetes.io/name: todo-backend
+  app.kubernetes.io/component: backend
+  app.kubernetes.io/part-of: todo-app

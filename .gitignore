@@ -86,3 +86,9 @@ typings/
 *.tsbuildinfo
 .svn/
 CVS/
+
+# Secrets and credentials
+cookies.txt
+k8s/secrets.yaml
+*.secret
+*.secrets

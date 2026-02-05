@@ -1,0 +1,41 @@
+# Helm Chart for Todo Frontend (Next.js)
+# This chart deploys the frontend web application to Kubernetes
+#
+# Usage:
+#   helm install todo-frontend ./k8s/frontend
+#   helm upgrade todo-frontend ./k8s/frontend
+#   helm uninstall todo-frontend
+
+apiVersion: v2
+name: todo-frontend
+description: Next.js frontend for the Todo application with AI chatbot UI
+type: application
+
+# Chart version - increment when making changes to the chart
+version: 0.1.0
+
+# Application version - matches the Docker image tag
+appVersion: "k8s"
+
+# Keywords for searchability
+keywords:
+  - todo
+  - nextjs
+  - frontend
+  - web
+  - kubernetes
+
+# Maintainer information
+maintainers:
+  - name: safdarayub
+    email: safdarayub@example.com
+
+# Home page (optional)
+home: https://github.com/safdarayubpk/flow
+
+# Sources (optional)
+sources:
+  - https://github.com/safdarayubpk/flow
+
+# Dependencies (none for this simple chart)
+dependencies: []

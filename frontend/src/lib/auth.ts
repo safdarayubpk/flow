@@ -3,8 +3,8 @@
  * This follows ADR-001 for secure JWT token storage using httpOnly cookies.
  */
 
-// Get API URL from environment variable
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use relative URL for API calls - requests go through Next.js API proxy routes
+const API_URL = '';
 
 // Function to get JWT token from httpOnly cookie
 export const getAccessToken = (): string | null => {

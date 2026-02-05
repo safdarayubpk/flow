@@ -1,0 +1,179 @@
+openapi: 3.0.0
+info:
+  title: Todo Chatbot API
+  description: API for the AI-powered Todo Chatbot
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Development server
+paths:
+  /api/v1/chat/:
+    post:
+      summary: Process a chat message
+      description: Send a message to the AI chatbot and receive a response
+      tags:
+        - chat
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Successful response from the chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+        '404':
+          description: Conversation not found
+        '500':
+          description: Internal server error
+  /api/v1/chat/conversations:
+    get:
+      summary: List user's conversations
+      description: Retrieve a list of all conversations for the authenticated user
+      tags:
+        - chat
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of user's conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConversationSummary'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+        '500':
+          description: Internal server error
+  /api/v1/chat/conversations/{conversation_id}:
+    get:
+      summary: Get conversation details
+      description: Retrieve details of a specific conversation including all messages
+      tags:
+        - chat
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the conversation to retrieve
+      responses:
+        '200':
+          description: Conversation details with all messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDetail'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+        '404':
+          description: Conversation not found or does not belong to user
+        '500':
+          description: Internal server error
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ChatRequest:
+      type: object
+      properties:
+        conversation_id:
+          type: integer
+          description: ID of the conversation (optional, creates new if not provided)
+          nullable: true
+        message:
+          type: string
+          description: The user's message to the chatbot
+          example: "Add a task to buy groceries"
+      required:
+        - message
+    ChatResponse:
+      type: object
+      properties:
+        conversation_id:
+          type: integer
+          description: ID of the conversation
+        response:
+          type: string
+          description: The AI chatbot's response
+          example: "I've added the task 'buy groceries' to your list."
+        tool_calls:
+          type: array
+          items:
+            type: object
+          description: List of tools called by the AI agent
+    ConversationSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the conversation
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the conversation was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the conversation was last updated
+        last_message:
+          type: string
+          description: Content of the last message in the conversation
+        last_message_at:
+          type: string
+          format: date-time
+          description: Timestamp of the last message
+    ConversationDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the conversation
+        user_id:
+          type: string
+          description: ID of the user who owns the conversation
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the conversation was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the conversation was last updated
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the message
+        role:
+          type: string
+          enum: [user, assistant]
+          description: The role of the message sender
+        content:
+          type: string
+          description: The content of the message
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the message was created

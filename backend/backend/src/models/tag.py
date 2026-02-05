@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Column
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import DateTime
@@ -22,7 +22,7 @@ class Tag(TagBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(
         default_factory=datetime.utcnow,
-        sa_column=Field(sa_column=DateTime(timezone=True), onupdate=datetime.utcnow)
+        sa_column=Column(DateTime(timezone=True), onupdate=datetime.utcnow)
     )
 
 

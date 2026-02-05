@@ -1,0 +1,41 @@
+# Helm Chart for Todo Backend (FastAPI)
+# This chart deploys the backend API service to Kubernetes
+#
+# Usage:
+#   helm install todo-backend ./k8s/backend
+#   helm upgrade todo-backend ./k8s/backend
+#   helm uninstall todo-backend
+
+apiVersion: v2
+name: todo-backend
+description: FastAPI backend for the Todo application with AI chatbot functionality
+type: application
+
+# Chart version - increment when making changes to the chart
+version: 0.1.0
+
+# Application version - matches the Docker image tag
+appVersion: "k8s"
+
+# Keywords for searchability
+keywords:
+  - todo
+  - fastapi
+  - backend
+  - api
+  - kubernetes
+
+# Maintainer information
+maintainers:
+  - name: safdarayub
+    email: safdarayub@example.com
+
+# Home page (optional)
+home: https://github.com/safdarayubpk/flow
+
+# Sources (optional)
+sources:
+  - https://github.com/safdarayubpk/flow
+
+# Dependencies (none for this simple chart)
+dependencies: []

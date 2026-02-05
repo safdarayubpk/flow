@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import TaskCard from './TaskCard';
 import TaskForm from './TaskForm';
+import SearchBar from './SearchBar';
+import FilterPanel from './FilterPanel';
+import SortDropdown from './SortDropdown';
 import { apiCall } from '@/lib/api';
 
 // Define the Task type
@@ -12,7 +15,19 @@ type Task = {
   created_at: string;
   updated_at: string;
   user_id: string;
+  priority?: 'high' | 'medium' | 'low' | null;
+  tags?: string[];
+  due_date?: string;
+  recurrence_rule?: string;
+  reminder_enabled: boolean;
 };
+
+interface FilterOptions {
+  priority?: string | null;
+  tags?: string[];
+  dueDateBefore?: Date | null;
+  recurring?: boolean | null;
+}
 
 interface TaskListProps {
   userId: string;
@@ -24,6 +39,12 @@ export default function TaskList({ userId }: TaskListProps) {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  // State for search and filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<FilterOptions>({});
+  const [sortBy, setSortBy] = useState<'priority' | 'due_date' | 'title' | 'created_at'>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Fetch tasks when component mounts
   useEffect(() => {
@@ -42,10 +63,43 @@ export default function TaskList({ userId }: TaskListProps) {
     };
   }, []);
 
+  const handleSortChange = (newSortBy: 'priority' | 'due_date' | 'title' | 'created_at') => {
+    // If clicking the same sort field, toggle the order
+    if (sortBy === newSortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('desc'); // Default to descending for new sorts
+    }
+    fetchTasks();
+  };
+
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const response = await apiCall('/api/v1/tasks/', {
+
+      // Build query parameters from filters and search
+      const queryParams = new URLSearchParams();
+
+      if (filters.priority) queryParams.append('priority', filters.priority);
+      if (filters.tags && filters.tags.length > 0) {
+        filters.tags.forEach(tag => queryParams.append('tags', tag));
+      }
+      if (filters.dueDateBefore) queryParams.append('due_date_before', filters.dueDateBefore.toISOString());
+      if (filters.recurring !== null && filters.recurring !== undefined) {
+        queryParams.append('recurring', filters.recurring.toString());
+      }
+      if (searchQuery) queryParams.append('search', searchQuery);
+      if (sortBy) queryParams.append('sort', sortBy);
+      queryParams.append('order', sortOrder); // Add sort order parameter
+
+      queryParams.append('skip', '0');
+      queryParams.append('limit', '100');
+
+      const queryString = queryParams.toString();
+      const url = `/api/v1/tasks/${queryString ? '?' + queryString : ''}`;
+
+      const response = await apiCall(url, {
         method: 'GET',
       });
 
@@ -62,6 +116,21 @@ export default function TaskList({ userId }: TaskListProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    fetchTasks();
+  };
+
+  const handleFilterChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    fetchTasks();
+  };
+
+  const handleCreateTask = () => {
+    setEditingTask(null);
+    setShowForm(true);
   };
 
   const handleToggleTask = async (id: number) => {
@@ -115,12 +184,16 @@ export default function TaskList({ userId }: TaskListProps) {
     }
   };
 
-  const handleCreateTask = () => {
-    setEditingTask(null);
-    setShowForm(true);
-  };
-
-  const handleSubmitTask = async (taskData: { id?: number; title: string; description?: string }) => {
+  const handleSubmitTask = async (taskData: {
+  id?: number;
+  title: string;
+  description?: string;
+  priority?: 'high' | 'medium' | 'low' | null;
+  tags?: string[];
+  due_date?: string;
+  recurrence_rule?: string;
+  reminder_enabled?: boolean;
+}) => {
     try {
       let response;
 
@@ -134,6 +207,11 @@ export default function TaskList({ userId }: TaskListProps) {
           body: JSON.stringify({
             title: taskData.title,
             description: taskData.description,
+            priority: taskData.priority,
+            tags: taskData.tags,
+            due_date: taskData.due_date,
+            recurrence_rule: taskData.recurrence_rule,
+            reminder_enabled: taskData.reminder_enabled,
           }),
         });
       } else {
@@ -146,6 +224,11 @@ export default function TaskList({ userId }: TaskListProps) {
           body: JSON.stringify({
             title: taskData.title,
             description: taskData.description,
+            priority: taskData.priority,
+            tags: taskData.tags,
+            due_date: taskData.due_date,
+            recurrence_rule: taskData.recurrence_rule,
+            reminder_enabled: taskData.reminder_enabled,
           }),
         });
       }
@@ -197,7 +280,17 @@ export default function TaskList({ userId }: TaskListProps) {
 
   return (
     <div>
-      {/* Header with Add Task button */}
+      {/* Search and Filter Section */}
+      <div className="mb-6 space-y-4">
+        <SearchBar onSearch={handleSearch} placeholder="Search tasks..." />
+        <FilterPanel
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          availableTags={Array.from(new Set(tasks.flatMap(task => task.tags || [])))}
+        />
+      </div>
+
+      {/* Header with Add Task button and Sort Dropdown */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <h2 className="text-lg sm:text-xl font-bold text-gray-800">
           Your Tasks
@@ -205,15 +298,26 @@ export default function TaskList({ userId }: TaskListProps) {
             ({activeTasks.length} active, {completedTasks.length} completed)
           </span>
         </h2>
-        <button
-          onClick={handleCreateTask}
-          className="inline-flex items-center px-4 py-2.5 sm:py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 min-h-[44px] sm:min-h-0 w-full sm:w-auto justify-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Task
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <SortDropdown
+            sortOption={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            className="mb-2 sm:mb-0 sm:mr-2"
+          />
+          <button
+            onClick={() => {
+              setEditingTask(null);
+              setShowForm(true);
+            }}
+            className="inline-flex items-center px-4 py-2.5 sm:py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 min-h-[44px] sm:min-h-0 w-full sm:w-auto justify-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Task
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -284,7 +388,7 @@ export default function TaskList({ userId }: TaskListProps) {
           {/* Show message when all tasks are completed */}
           {activeTasks.length === 0 && completedTasks.length > 0 && (
             <div className="text-center py-4 bg-green-50 rounded-lg border border-green-200">
-              <span className="text-green-700 font-medium">🎉 All tasks completed! Great job!</span>
+              <span className="text-green-700 font-medium">All tasks completed! Great job!</span>
             </div>
           )}
         </div>
