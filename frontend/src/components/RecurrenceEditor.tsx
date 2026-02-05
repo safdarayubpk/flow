@@ -1,15 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useState, useEffect } from 'react';
 
 interface RecurrenceEditorProps {
   rule: string;
@@ -30,7 +21,7 @@ const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({
     return 'none';
   });
 
-  const [interval, setInterval] = useState<string>(() => {
+  const [interval, setIntervalVal] = useState<string>(() => {
     const match = rule.match(/INTERVAL=(\d+)/);
     return match ? match[1] : '1';
   });
@@ -45,98 +36,76 @@ const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({
     return match ? match[1] : '';
   });
 
-  const updateRule = () => {
+  useEffect(() => {
     let newRule = `FREQ=${frequency.toUpperCase()}`;
-
     if (interval && interval !== '1') {
       newRule += `;INTERVAL=${interval}`;
     }
-
     if (count) {
       newRule += `;COUNT=${count}`;
     } else if (until) {
       newRule += `;UNTIL=${until}`;
     }
-
     onRuleChange(newRule);
-  };
-
-  React.useEffect(() => {
-    updateRule();
   }, [frequency, interval, count, until]);
-
-  const handleFrequencyChange = (value: string) => {
-    setFrequency(value);
-  };
-
-  const handleIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '' || /^[1-9]\d*$/.test(value)) {
-      setInterval(value);
-    }
-  };
-
-  const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '' || /^[1-9]\d*$/.test(value)) {
-      setCount(value);
-    }
-  };
-
-  const handleUntilChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUntil(e.target.value);
-  };
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Frequency</Label>
-          <Select value={frequency} onValueChange={handleFrequencyChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None</SelectItem>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="yearly">Yearly</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">Frequency</label>
+          <select
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
+          >
+            <option value="none">None</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
         </div>
 
-        <div className="space-y-2">
-          <Label>Interval</Label>
-          <Input
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">Interval</label>
+          <input
             type="number"
             min="1"
             value={interval}
-            onChange={handleIntervalChange}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === '' || /^[1-9]\d*$/.test(v)) setIntervalVal(v);
+            }}
             placeholder="Every X times"
+            className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>End After (occurrences)</Label>
-          <Input
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">End After (occurrences)</label>
+          <input
             type="number"
             min="1"
             value={count}
-            onChange={handleCountChange}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === '' || /^[1-9]\d*$/.test(v)) setCount(v);
+            }}
             placeholder="Leave empty for no end"
+            className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>End By Date</Label>
-          <Input
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">End By Date</label>
+          <input
             type="date"
             value={until}
-            onChange={handleUntilChange}
-            placeholder="YYYYMMDDTHHMMSSZ"
+            onChange={(e) => setUntil(e.target.value)}
+            className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
           />
         </div>
       </div>

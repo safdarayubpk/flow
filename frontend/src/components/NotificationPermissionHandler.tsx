@@ -1,9 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Bell, BellOff, Settings } from 'lucide-react';
 
 interface NotificationPermissionHandlerProps {
   onPermissionChange?: (permission: NotificationPermission) => void;
@@ -18,7 +15,6 @@ const NotificationPermissionHandler: React.FC<NotificationPermissionHandlerProps
   const [isSupported, setIsSupported] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if browser supports notifications
     if ('Notification' in window) {
       setIsSupported(true);
       setPermission(Notification.permission);
@@ -29,7 +25,6 @@ const NotificationPermissionHandler: React.FC<NotificationPermissionHandlerProps
 
   const requestPermission = async () => {
     if (!isSupported) return;
-
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
@@ -43,60 +38,51 @@ const NotificationPermissionHandler: React.FC<NotificationPermissionHandlerProps
 
   if (!isSupported) {
     return (
-      <Alert className={className}>
-        <BellOff className="h-4 w-4" />
-        <AlertTitle>Notifications not supported</AlertTitle>
-        <AlertDescription>
+      <div className={`rounded-lg border border-gray-200 p-4 ${className}`}>
+        <p className="text-sm font-medium text-gray-700">Notifications not supported</p>
+        <p className="text-sm text-gray-500 mt-1">
           Your browser does not support desktop notifications. You may still receive in-app notifications.
-        </AlertDescription>
-      </Alert>
+        </p>
+      </div>
     );
   }
 
   if (permission === 'granted') {
     return (
-      <Alert className={`${className} border-green-200 bg-green-50`}>
-        <Bell className="h-4 w-4 text-green-600" />
-        <AlertTitle>Notifications Enabled</AlertTitle>
-        <AlertDescription>
+      <div className={`rounded-lg border border-green-200 bg-green-50 p-4 ${className}`}>
+        <p className="text-sm font-medium text-green-700">Notifications Enabled</p>
+        <p className="text-sm text-green-600 mt-1">
           You have granted permission to receive browser notifications.
-        </AlertDescription>
-      </Alert>
+        </p>
+      </div>
     );
   }
 
   if (permission === 'denied') {
     return (
-      <Alert className={`${className} border-red-200 bg-red-50`}>
-        <BellOff className="h-4 w-4 text-red-600" />
-        <AlertTitle>Notifications Blocked</AlertTitle>
-        <AlertDescription>
+      <div className={`rounded-lg border border-red-200 bg-red-50 p-4 ${className}`}>
+        <p className="text-sm font-medium text-red-700">Notifications Blocked</p>
+        <p className="text-sm text-red-600 mt-1">
           You have blocked browser notifications. Please enable them in your browser settings.
-        </AlertDescription>
-        <div className="mt-2">
-          <Button variant="outline" size="sm" onClick={() => window.open('about:blank', '_blank')}>
-            <Settings className="h-4 w-4 mr-2" />
-            Open Settings
-          </Button>
-        </div>
-      </Alert>
+        </p>
+      </div>
     );
   }
 
-  // Default state - permission not yet requested
   return (
-    <Alert className={className}>
-      <Bell className="h-4 w-4" />
-      <AlertTitle>Enable Notifications</AlertTitle>
-      <AlertDescription>
+    <div className={`rounded-lg border border-gray-200 p-4 ${className}`}>
+      <p className="text-sm font-medium text-gray-700">Enable Notifications</p>
+      <p className="text-sm text-gray-500 mt-1">
         Enable browser notifications to receive reminders for your tasks.
-      </AlertDescription>
-      <div className="mt-2">
-        <Button variant="default" size="sm" onClick={requestPermission}>
-          Enable Notifications
-        </Button>
-      </div>
-    </Alert>
+      </p>
+      <button
+        type="button"
+        onClick={requestPermission}
+        className="mt-2 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+      >
+        Enable Notifications
+      </button>
+    </div>
   );
 };
 

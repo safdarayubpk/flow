@@ -1,11 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import PriorityBadge from '@/components/PriorityBadge';
 import TagChips from '@/components/TagChips';
 import DatePicker from '@/components/DatePicker';
@@ -52,19 +47,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
   const handleAddTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData({
-        ...formData,
-        tags: [...formData.tags, newTag.trim()],
-      });
+      setFormData(prev => ({ ...prev, tags: [...prev.tags, newTag.trim()] }));
       setNewTag('');
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove),
-    }));
+    setFormData(prev => ({ ...prev, tags: prev.tags.filter(tag => tag !== tagToRemove) }));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -76,63 +65,30 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
   const handleDueDateChange = (date: Date | undefined) => {
     if (date && selectedTime) {
-      // Combine the selected date with the selected time
-      const timeParts = selectedTime.split(':');
-      const hours = parseInt(timeParts[0]);
-      const minutes = parseInt(timeParts[1]);
-
+      const [hours, minutes] = selectedTime.split(':').map(Number);
       date.setHours(hours);
       date.setMinutes(minutes);
-
-      setFormData(prev => ({
-        ...prev,
-        due_date: date.toISOString(),
-      }));
+      setFormData(prev => ({ ...prev, due_date: date.toISOString() }));
     } else if (date) {
-      // If no time is selected, use default time
-      setFormData(prev => ({
-        ...prev,
-        due_date: date.toISOString(),
-      }));
+      setFormData(prev => ({ ...prev, due_date: date.toISOString() }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        due_date: undefined,
-      }));
+      setFormData(prev => ({ ...prev, due_date: undefined }));
     }
   };
 
   const handleTimeChange = (time: string) => {
     setSelectedTime(time);
     if (formData.due_date) {
-      // Update the time part of the existing due date
       const date = new Date(formData.due_date);
-      const timeParts = time.split(':');
-      const hours = parseInt(timeParts[0]);
-      const minutes = parseInt(timeParts[1]);
-
+      const [hours, minutes] = time.split(':').map(Number);
       date.setHours(hours);
       date.setMinutes(minutes);
-
-      setFormData(prev => ({
-        ...prev,
-        due_date: date.toISOString(),
-      }));
+      setFormData(prev => ({ ...prev, due_date: date.toISOString() }));
     }
   };
 
   const handleRecurrenceChange = (enabled: boolean, rule?: string) => {
-    setFormData(prev => ({
-      ...prev,
-      recurrence_rule: enabled ? rule || 'FREQ=DAILY' : undefined,
-    }));
-  };
-
-  const handleReminderToggle = (checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      reminder_enabled: checked,
-    }));
+    setFormData(prev => ({ ...prev, recurrence_rule: enabled ? rule || 'FREQ=DAILY' : undefined }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -141,33 +97,36 @@ const TaskForm: React.FC<TaskFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white border rounded-lg shadow-sm mb-4">
       {/* Title */}
-      <div className="space-y-2">
-        <Label htmlFor="title">Title *</Label>
-        <Input
+      <div className="space-y-1">
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title *</label>
+        <input
           id="title"
           value={formData.title}
-          onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
+          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
           placeholder="Task title"
           required
+          className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
         />
       </div>
 
       {/* Description */}
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
+      <div className="space-y-1">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+        <textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           placeholder="Task description"
+          rows={3}
+          className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-y"
         />
       </div>
 
       {/* Priority */}
-      <div className="space-y-2">
-        <Label>Priority</Label>
+      <div className="space-y-1">
+        <span className="block text-sm font-medium text-gray-700">Priority</span>
         <div className="flex space-x-2">
           {(['high', 'medium', 'low'] as const).map(level => (
             <button
@@ -175,13 +134,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
               type="button"
               className={`px-3 py-1 rounded-md text-sm ${
                 formData.priority === level
-                  ? 'bg-blue-500 text-white'
+                  ? 'bg-indigo-500 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
-              onClick={() => setFormData(prev => ({
-                ...prev,
-                priority: prev.priority === level ? null : level
-              }))}
+              onClick={() => setFormData(prev => ({ ...prev, priority: prev.priority === level ? null : level }))}
             >
               {level.charAt(0).toUpperCase() + level.slice(1)}
             </button>
@@ -191,23 +147,30 @@ const TaskForm: React.FC<TaskFormProps> = ({
       </div>
 
       {/* Tags */}
-      <div className="space-y-2">
-        <Label>Tags</Label>
+      <div className="space-y-1">
+        <span className="block text-sm font-medium text-gray-700">Tags</span>
         <div className="flex space-x-2">
-          <Input
+          <input
             value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
             placeholder="Add a tag"
             onKeyDown={handleKeyPress}
+            className="flex-1 rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
           />
-          <Button type="button" onClick={handleAddTag}>Add</Button>
+          <button
+            type="button"
+            onClick={handleAddTag}
+            className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+          >
+            Add
+          </button>
         </div>
         <TagChips tags={formData.tags} onRemove={handleRemoveTag} className="mt-2" />
       </div>
 
       {/* Due Date */}
-      <div className="space-y-2">
-        <Label>Due Date</Label>
+      <div className="space-y-1">
+        <span className="block text-sm font-medium text-gray-700">Due Date</span>
         <div className="flex flex-col sm:flex-row gap-2">
           <DatePicker
             date={formData.due_date ? new Date(formData.due_date) : undefined}
@@ -222,8 +185,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
       </div>
 
       {/* Recurring Task */}
-      <div className="space-y-2">
-        <Label>Recurring Task</Label>
+      <div className="space-y-1">
+        <span className="block text-sm font-medium text-gray-700">Recurring Task</span>
         <RecurringToggle
           enabled={!!formData.recurrence_rule}
           onToggle={handleRecurrenceChange}
@@ -232,22 +195,32 @@ const TaskForm: React.FC<TaskFormProps> = ({
       </div>
 
       {/* Reminder */}
-      <div className="flex items-center space-x-2 pt-2">
-        <Checkbox
-          id="reminder-enabled"
+      <label className="flex items-center space-x-2 pt-2 cursor-pointer">
+        <input
+          type="checkbox"
           checked={formData.reminder_enabled}
-          onCheckedChange={handleReminderToggle}
+          onChange={(e) => setFormData(prev => ({ ...prev, reminder_enabled: e.target.checked }))}
+          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
         />
-        <Label htmlFor="reminder-enabled">Enable Reminder</Label>
-      </div>
+        <span className="text-sm font-medium text-gray-700">Enable Reminder</span>
+      </label>
 
       {/* Action Buttons */}
       <div className="flex space-x-2 pt-4">
-        <Button type="submit">{submitLabel}</Button>
+        <button
+          type="submit"
+          className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          {submitLabel}
+        </button>
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
             Cancel
-          </Button>
+          </button>
         )}
       </div>
     </form>

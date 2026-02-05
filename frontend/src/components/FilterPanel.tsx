@@ -1,20 +1,6 @@
 'use client';
 
-'use client';
-
 import React, { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
 
 interface FilterOptions {
   priority?: string | null;
@@ -37,9 +23,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   className = ''
 }) => {
   const [selectedTags, setSelectedTags] = useState<string[]>(filters.tags || []);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
-  const handlePriorityChange = (value: string) => {
+  const handlePriorityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
     onFilterChange({ ...filters, priority: value === 'all' ? null : value });
   };
 
@@ -52,107 +38,99 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     onFilterChange({ ...filters, tags: newTags });
   };
 
-  const handleDueDateChange = (date: Date | undefined) => {
-    onFilterChange({ ...filters, dueDateBefore: date || null });
-    setDatePickerOpen(false);
+  const handleDueDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    onFilterChange({ ...filters, dueDateBefore: value ? new Date(value) : null });
   };
 
-  const handleRecurringChange = (checked: boolean) => {
-    onFilterChange({ ...filters, recurring: checked ? true : null });
+  const handleRecurringChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onFilterChange({ ...filters, recurring: e.target.checked ? true : null });
   };
 
   const clearFilters = () => {
-    const clearedFilters: FilterOptions = {
-      priority: null,
-      tags: [],
-      dueDateBefore: null,
-      recurring: null
-    };
     setSelectedTags([]);
-    onFilterChange(clearedFilters);
+    onFilterChange({ priority: null, tags: [], dueDateBefore: null, recurring: null });
+  };
+
+  const formatDateForInput = (d: Date | null | undefined): string => {
+    if (!d) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   return (
     <div className={`border rounded-lg p-4 space-y-4 ${className}`}>
       <div className="flex justify-between items-center">
-        <h3 className="font-medium">Filters</h3>
-        <Button type="button" variant="outline" size="sm" onClick={clearFilters}>
+        <h3 className="font-medium text-gray-800">Filters</h3>
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="px-3 py-1 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
+        >
           Clear All
-        </Button>
+        </button>
       </div>
 
       {/* Priority Filter */}
-      <div className="space-y-2">
-        <Label htmlFor="priority-filter">Priority</Label>
-        <Select value={filters.priority || 'all'} onValueChange={handlePriorityChange}>
-          <SelectTrigger id="priority-filter" className="w-full">
-            <SelectValue placeholder="Select priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="space-y-1">
+        <label htmlFor="priority-filter" className="block text-sm font-medium text-gray-700">Priority</label>
+        <select
+          id="priority-filter"
+          value={filters.priority || 'all'}
+          onChange={handlePriorityChange}
+          className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
+        >
+          <option value="all">All Priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
       </div>
 
       {/* Tags Filter */}
-      <div className="space-y-2">
-        <Label>Tags</Label>
-        <div className="flex flex-wrap gap-2">
-          {availableTags.map((tag) => (
-            <div key={tag} className="flex items-center space-x-2">
-              <Checkbox
-                id={`tag-${tag}`}
-                checked={selectedTags.includes(tag)}
-                onCheckedChange={() => handleTagToggle(tag)}
-              />
-              <Label htmlFor={`tag-${tag}`} className="text-sm font-normal">
-                {tag}
-              </Label>
-            </div>
-          ))}
+      {availableTags.length > 0 && (
+        <div className="space-y-1">
+          <span className="block text-sm font-medium text-gray-700">Tags</span>
+          <div className="flex flex-wrap gap-2">
+            {availableTags.map((tag) => (
+              <label key={tag} className="flex items-center space-x-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedTags.includes(tag)}
+                  onChange={() => handleTagToggle(tag)}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-sm text-gray-600">{tag}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Due Date Filter */}
-      <div className="space-y-2">
-        <Label>Due Before</Label>
-        <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={`w-full justify-start text-left font-normal ${
-                !filters.dueDateBefore && 'text-muted-foreground'
-              }`}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {filters.dueDateBefore ? format(filters.dueDateBefore, 'PPP') : <span>Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={filters.dueDateBefore || undefined}
-              onSelect={handleDueDateChange}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+      <div className="space-y-1">
+        <label htmlFor="due-before" className="block text-sm font-medium text-gray-700">Due Before</label>
+        <input
+          id="due-before"
+          type="date"
+          value={formatDateForInput(filters.dueDateBefore)}
+          onChange={handleDueDateChange}
+          className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+        />
       </div>
 
       {/* Recurring Filter */}
-      <div className="flex items-center space-x-2 pt-2">
-        <Checkbox
-          id="recurring-filter"
+      <label className="flex items-center space-x-2 pt-2 cursor-pointer">
+        <input
+          type="checkbox"
           checked={filters.recurring === true}
-          onCheckedChange={(checked) => handleRecurringChange(checked as boolean)}
+          onChange={handleRecurringChange}
+          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
         />
-        <Label htmlFor="recurring-filter" className="text-sm font-normal">
-          Recurring Tasks Only
-        </Label>
-      </div>
+        <span className="text-sm text-gray-600">Recurring Tasks Only</span>
+      </label>
     </div>
   );
 };

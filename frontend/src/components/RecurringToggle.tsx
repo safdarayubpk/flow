@@ -1,16 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import RecurrenceEditor from './RecurrenceEditor';
 
 interface RecurringToggleProps {
@@ -26,63 +16,63 @@ const RecurringToggle: React.FC<RecurringToggleProps> = ({
   initialRule = 'FREQ=DAILY',
   className = ''
 }) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const [tempRule, setTempRule] = useState(initialRule);
 
-  const handleSwitchChange = (checked: boolean) => {
-    if (checked) {
-      // Enable recurring with the current rule
+  const handleToggle = () => {
+    if (!enabled) {
       onToggle(true, tempRule);
     } else {
-      // Disable recurring
       onToggle(false);
+      setShowEditor(false);
     }
   };
 
   const handleRuleChange = (rule: string) => {
     setTempRule(rule);
     if (enabled) {
-      // If already enabled, update the rule immediately
       onToggle(true, rule);
-    } else {
-      // Otherwise, just update the temp rule for when it gets enabled
-      setTempRule(rule);
     }
   };
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
-
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <Switch
-        id="recurring-toggle"
-        checked={enabled}
-        onCheckedChange={handleSwitchChange}
-        aria-label="Toggle recurring task"
-      />
-      <label htmlFor="recurring-toggle" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        Recurring
-      </label>
+    <div className={`space-y-3 ${className}`}>
+      <div className="flex items-center space-x-3">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          onClick={handleToggle}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            enabled ? 'bg-indigo-600' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              enabled ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+        <span className="text-sm font-medium text-gray-700">Recurring</span>
 
-      {enabled && (
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              Configure
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Configure Recurring Task</DialogTitle>
-            </DialogHeader>
-            <RecurrenceEditor
-              rule={initialRule}
-              onRuleChange={handleRuleChange}
-            />
-          </DialogContent>
-        </Dialog>
+        {enabled && (
+          <button
+            type="button"
+            onClick={() => setShowEditor(!showEditor)}
+            className="px-3 py-1 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
+          >
+            {showEditor ? 'Hide' : 'Configure'}
+          </button>
+        )}
+      </div>
+
+      {enabled && showEditor && (
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <RecurrenceEditor
+            rule={tempRule}
+            onRuleChange={handleRuleChange}
+          />
+        </div>
       )}
     </div>
   );
