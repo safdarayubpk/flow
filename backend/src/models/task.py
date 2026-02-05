@@ -1,6 +1,6 @@
-from sqlmodel import SQLModel, Field, Column
+from sqlmodel import SQLModel, Field, Column, Relationship
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import DateTime
 from src.models.user import User
 
@@ -13,6 +13,9 @@ class TaskBase(SQLModel):
     title: str = Field(min_length=1, max_length=200)  # Required, 1-200 characters
     description: Optional[str] = Field(default=None)  # Optional description
     completed: bool = Field(default=False)  # Default to false
+    priority: Optional[str] = Field(default=None, max_length=20)  # Priority: high, medium, low
+    due_date: Optional[datetime] = Field(default=None)  # Due date for the task
+    recurrence_rule: Optional[str] = Field(default=None, max_length=200)  # RFC 5545 recurrence rule
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(
         default_factory=datetime.utcnow,
@@ -45,6 +48,9 @@ class TaskUpdate(SQLModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=200)
     description: Optional[str] = None
     completed: Optional[bool] = None
+    priority: Optional[str] = Field(default=None, max_length=20)  # Priority: high, medium, low
+    due_date: Optional[datetime] = Field(default=None)  # Due date for the task
+    recurrence_rule: Optional[str] = Field(default=None, max_length=200)  # RFC 5545 recurrence rule
 
 
 class TaskRead(TaskBase):
