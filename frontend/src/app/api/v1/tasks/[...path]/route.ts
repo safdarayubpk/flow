@@ -38,6 +38,12 @@ async function proxyRequest(request: NextRequest, path: string[]) {
 
   try {
     const response = await fetch(url, options);
+
+    // Handle 204 No Content (e.g. DELETE responses)
+    if (response.status === 204) {
+      return new NextResponse(null, { status: 204 });
+    }
+
     const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });
