@@ -53,6 +53,11 @@ def create_app():
     def read_root():
         return {"message": "Todo Application API"}
 
+    @app.get("/health")
+    def health_check():
+        """Health check endpoint for deployment monitoring"""
+        return {"status": "healthy", "version": "1.0.0"}
+
     return app
 
 

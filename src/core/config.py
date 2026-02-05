@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     # Better Auth Configuration
     better_auth_url: str = "http://localhost:3000"
 
-    # CORS Configuration
-    cors_origins: str = "http://localhost:3000"
+    # CORS Configuration - comma-separated origins
+    cors_origins: str = "http://localhost:3000,https://frontend-blue-six-59.vercel.app"
 
     @property
     def is_production(self) -> bool:

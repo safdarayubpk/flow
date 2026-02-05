@@ -15,7 +15,11 @@ from src.mcp_server.tools import (
     list_tasks_tool,
     complete_task_tool,
     delete_task_tool,
-    update_task_tool
+    update_task_tool,
+    filter_tasks_tool,
+    sort_tasks_tool,
+    set_due_date_tool,
+    set_recurring_tool
 )
 
 
@@ -62,7 +66,7 @@ def process_chat_request(
         chat_history.append({
             "role": "system",
             "content": f"""You are a helpful AI assistant that manages a user's todo list.
-You can help users add, list, update, delete, and complete tasks.
+You can help users add, list, update, delete, complete, filter, sort, set due dates, and set recurring tasks.
 You have access to specific tools to perform these operations.
 
 IMPORTANT: The current user's ID is: {user_id}
@@ -79,9 +83,24 @@ CRITICAL RULES FOR TASK OPERATIONS:
 
 3. When a user wants to see their tasks, use the list_tasks tool.
 
-4. NEVER guess task IDs. Always verify by listing tasks first.
+4. When a user wants to FILTER tasks by priority, tags, or due date:
+   - Use the filter_tasks tool with appropriate parameters
+   - Available filters: priority (high, medium, low), tags (list of strings), due_date_before (ISO format)
 
-5. Match tasks by title (case-insensitive, partial match is OK).
+5. When a user wants to SORT tasks:
+   - Use the sort_tasks tool with sort_by and order parameters
+   - Valid sort_by options: priority, due_date, title, created_at
+   - Valid order options: asc, desc
+
+6. When a user wants to SET A DUE DATE:
+   - Use the set_due_date tool with task_id and due_date (ISO format: YYYY-MM-DDTHH:MM:SSZ)
+
+7. When a user wants to MAKE A TASK RECURRING:
+   - Use the set_recurring_tool with task_id and rrule_string (RFC 5545 recurrence rule)
+
+8. NEVER guess task IDs. Always verify by listing tasks first.
+
+9. Match tasks by title (case-insensitive, partial match is OK).
 
 Tool usage:
 - add_task: user_id="{user_id}", title, description (optional)
@@ -89,6 +108,10 @@ Tool usage:
 - complete_task: user_id="{user_id}", task_id (integer)
 - delete_task: user_id="{user_id}", task_id (integer)
 - update_task: user_id="{user_id}", task_id (integer), title/description (optional)
+- filter_tasks: user_id="{user_id}", priority (optional), tags (optional), due_date_before (optional)
+- sort_tasks: user_id="{user_id}", sort_by (default: created_at), order (default: desc)
+- set_due_date: user_id="{user_id}", task_id (integer), due_date (ISO format)
+- set_recurring: user_id="{user_id}", task_id (integer), rrule_string
 
 Always respond in a friendly, helpful tone and confirm actions taken."""
         })
@@ -183,6 +206,71 @@ Always respond in a friendly, helpful tone and confirm actions taken."""
                             "description": {"type": "string", "description": "New description for the task (optional)"}
                         },
                         "required": ["user_id", "task_id"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "filter_tasks",
+                    "description": "Filter tasks by priority, tags, or due date",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "user_id": {"type": "string", "description": "The user's ID"},
+                            "priority": {"type": "string", "description": "Filter by priority: high, medium, or low"},
+                            "tags": {"type": "array", "items": {"type": "string"}, "description": "Filter by tags"},
+                            "due_date_before": {"type": "string", "description": "Filter by due date before (ISO format: YYYY-MM-DDTHH:MM:SSZ)"}
+                        },
+                        "required": ["user_id"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "sort_tasks",
+                    "description": "Sort tasks by various criteria",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "user_id": {"type": "string", "description": "The user's ID"},
+                            "sort_by": {"type": "string", "description": "Sort by: priority, due_date, title, or created_at (default: created_at)"},
+                            "order": {"type": "string", "description": "Sort order: asc or desc (default: desc)"}
+                        },
+                        "required": ["user_id"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_due_date",
+                    "description": "Set a due date for a task",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "user_id": {"type": "string", "description": "The user's ID"},
+                            "task_id": {"type": "integer", "description": "The ID of the task"},
+                            "due_date": {"type": "string", "description": "Due date in ISO format: YYYY-MM-DDTHH:MM:SSZ"}
+                        },
+                        "required": ["user_id", "task_id", "due_date"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_recurring",
+                    "description": "Set a recurring pattern for a task using RFC 5545 recurrence rule",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "user_id": {"type": "string", "description": "The user's ID"},
+                            "task_id": {"type": "integer", "description": "The ID of the task"},
+                            "rrule_string": {"type": "string", "description": "RFC 5545 recurrence rule string (e.g., 'FREQ=WEEKLY', 'FREQ=DAILY', etc.)"}
+                        },
+                        "required": ["user_id", "task_id", "rrule_string"]
                     }
                 }
             }
@@ -286,6 +374,14 @@ Be friendly and apologetic about the inconvenience."""
                         result = delete_task_tool(**function_args)
                     elif function_name == "update_task":
                         result = update_task_tool(**function_args)
+                    elif function_name == "filter_tasks":
+                        result = filter_tasks_tool(**function_args)
+                    elif function_name == "sort_tasks":
+                        result = sort_tasks_tool(**function_args)
+                    elif function_name == "set_due_date":
+                        result = set_due_date_tool(**function_args)
+                    elif function_name == "set_recurring":
+                        result = set_recurring_tool(**function_args)
                     else:
                         result = {"error": f"Unknown function: {function_name}"}
 

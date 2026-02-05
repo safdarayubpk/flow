@@ -37,6 +37,7 @@ class User(UserBase, table=True):
     # Relationships
     conversations: List["Conversation"] = Relationship(back_populates="user")
     messages: List["Message"] = Relationship(back_populates="user")
+    tasks: List["Task"] = Relationship(back_populates="user")
 
 
 class UserCreate(UserBase):

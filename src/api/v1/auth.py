@@ -56,10 +56,12 @@ def register_user(user_create: UserCreate, response: Response, session: Session 
         )
 
 
-@router.post("/login", response_model=Dict[str, str])
+@router.post("/login")
 def login_user(login_request: LoginRequest, response: Response, session: Session = Depends(get_session)):
     """
     Login a user with email and password.
+    Returns tokens in response body for cross-origin scenarios (localStorage storage).
+    Also sets httpOnly cookies for same-origin scenarios.
     """
     user = UserService.authenticate_user(
         session=session,
@@ -88,11 +90,17 @@ def login_user(login_request: LoginRequest, response: Response, session: Session
         expires_delta=refresh_token_expires
     )
 
-    # Set tokens in httpOnly cookies with proper CSRF protection
-    # This implements CSRF protection per ADR-001 by using SameSite=strict
+    # Set tokens in httpOnly cookies (for same-origin scenarios)
     create_auth_response(response, access_token, refresh_token)
 
-    return {"message": "Login successful"}
+    # Also return tokens in response body for cross-origin scenarios
+    # Frontend can store these in localStorage and send via Authorization header
+    return {
+        "message": "Login successful",
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
 
 
 @router.post("/logout")
