@@ -41,7 +41,12 @@ export default function ChatPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 w-full sm:w-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Todo Chatbot</h1>
+            <a
+              href="/tasks"
+              className="text-2xl sm:text-3xl font-bold text-gray-900 hover:text-indigo-600 hover:underline cursor-pointer transition-colors duration-150"
+            >
+              Todo Tasks
+            </a>
             <nav className="flex gap-4">
               <a
                 href="/tasks"
