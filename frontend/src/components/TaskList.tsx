@@ -47,10 +47,10 @@ export default function TaskList({ userId }: TaskListProps) {
   const [sortBy, setSortBy] = useState<'priority' | 'due_date' | 'title' | 'created_at'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch tasks when component mounts
+  // Fetch tasks when component mounts or when search/filter/sort changes
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [searchQuery, filters, sortBy, sortOrder]);
 
   // Listen for task updates from chat widget
   useEffect(() => {
@@ -72,7 +72,7 @@ export default function TaskList({ userId }: TaskListProps) {
       setSortBy(newSortBy);
       setSortOrder('desc'); // Default to descending for new sorts
     }
-    fetchTasks();
+    // fetchTasks() is triggered by useEffect when sortBy/sortOrder changes
   };
 
   const fetchTasks = async () => {
@@ -121,12 +121,12 @@ export default function TaskList({ userId }: TaskListProps) {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    fetchTasks();
+    // fetchTasks() is triggered by useEffect when searchQuery changes
   };
 
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
-    fetchTasks();
+    // fetchTasks() is triggered by useEffect when filters change
   };
 
   const handleCreateTask = () => {
