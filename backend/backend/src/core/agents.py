@@ -7,6 +7,7 @@ requests and coordinate with MCP tools to perform task operations.
 import os
 import json
 import time
+from datetime import datetime, timezone
 from typing import Tuple, List, Dict, Any
 from sqlmodel import Session
 from openai import OpenAI
@@ -58,6 +59,10 @@ def process_chat_request(
         # Build the message history for the AI
         chat_history = []
 
+        # Get current datetime for relative date calculations
+        current_datetime = datetime.now(timezone.utc)
+        current_datetime_iso = current_datetime.isoformat()
+
         # Add system message to guide the AI
         chat_history.append({
             "role": "system",
@@ -67,6 +72,10 @@ You have access to specific tools to perform these operations.
 
 IMPORTANT: The current user's ID is: {user_id}
 Always use this exact user_id value when calling any tool.
+
+CURRENT DATE/TIME: {current_datetime_iso}
+Use this to calculate relative dates like "in 1 minute", "tomorrow", "next week", etc.
+For example, if the user says "due in 5 minutes", add 5 minutes to the current time and convert to ISO format.
 
 CRITICAL RULES FOR TASK OPERATIONS:
 1. When a user wants to DELETE, COMPLETE, or UPDATE a task by name/title:
@@ -84,11 +93,27 @@ CRITICAL RULES FOR TASK OPERATIONS:
 5. Match tasks by title (case-insensitive, partial match is OK).
 
 Tool usage:
-- add_task: user_id="{user_id}", title, description (optional)
-- list_tasks: user_id="{user_id}", status (optional: "all", "pending", "completed")
+- add_task: user_id="{user_id}", title, description (optional), priority, tags, due_date, recurrence_rule, reminder_enabled
+- list_tasks: user_id="{user_id}", status (optional: "all", "pending", "completed"), priority, tags, sort_by, sort_order
 - complete_task: user_id="{user_id}", task_id (integer)
 - delete_task: user_id="{user_id}", task_id (integer)
-- update_task: user_id="{user_id}", task_id (integer), title/description (optional)
+- update_task: user_id="{user_id}", task_id (integer), title, description, priority, tags, due_date, recurrence_rule, reminder_enabled
+
+PHASE V.1 FIELDS (all optional when creating/updating tasks):
+- priority: "high", "medium", or "low"
+- tags: list of tag names (e.g. ["work", "urgent"])
+- due_date: ISO date string (e.g. "2025-06-15T09:00:00Z")
+- recurrence_rule: DAILY, WEEKLY, MONTHLY, or YEARLY
+- reminder_enabled: true/false
+
+When listing tasks, you can filter by priority and tags, and sort by priority, due_date, title, or created_at.
+
+Example interactions:
+- "Add a high priority task to prepare presentation" → add_task with priority="high"
+- "Show my high priority tasks" → list_tasks with priority="high"
+- "Set the meeting task to recur weekly" → first list_tasks, find the task, then update_task with recurrence_rule="WEEKLY"
+- "Tag the groceries task as personal" → first list_tasks, find the task, then update_task with tags=["personal"]
+- "What tasks are due this week?" → list_tasks with sort_by="due_date", sort_order="asc"
 
 Always respond in a friendly, helpful tone and confirm actions taken."""
         })
@@ -112,13 +137,18 @@ Always respond in a friendly, helpful tone and confirm actions taken."""
                 "type": "function",
                 "function": {
                     "name": "add_task",
-                    "description": "Add a new task to the user's todo list",
+                    "description": "Add a new task to the user's todo list with optional priority, tags, due date, recurrence, and reminders",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "user_id": {"type": "string", "description": "The user's ID"},
                             "title": {"type": "string", "description": "The title of the task"},
-                            "description": {"type": "string", "description": "Optional description of the task"}
+                            "description": {"type": "string", "description": "Optional description of the task"},
+                            "priority": {"type": "string", "enum": ["high", "medium", "low"], "description": "Task priority level"},
+                            "tags": {"type": "array", "items": {"type": "string"}, "description": "List of tag names to associate with the task"},
+                            "due_date": {"type": "string", "description": "Due date in ISO format (e.g. 2025-06-15T09:00:00Z)"},
+                            "recurrence_rule": {"type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"], "description": "Recurrence rule for repeating tasks"},
+                            "reminder_enabled": {"type": "boolean", "description": "Whether to enable reminders for this task"}
                         },
                         "required": ["user_id", "title"]
                     }
@@ -128,12 +158,16 @@ Always respond in a friendly, helpful tone and confirm actions taken."""
                 "type": "function",
                 "function": {
                     "name": "list_tasks",
-                    "description": "List the user's tasks with optional filtering",
+                    "description": "List the user's tasks with optional filtering by status, priority, tags, and sorting",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "user_id": {"type": "string", "description": "The user's ID"},
-                            "status": {"type": "string", "description": "Filter by status: all, pending, or completed"}
+                            "status": {"type": "string", "enum": ["all", "pending", "completed"], "description": "Filter by completion status"},
+                            "priority": {"type": "string", "enum": ["high", "medium", "low"], "description": "Filter by priority level"},
+                            "tags": {"type": "array", "items": {"type": "string"}, "description": "Filter by tag names (returns tasks matching any of the tags)"},
+                            "sort_by": {"type": "string", "enum": ["created_at", "priority", "due_date", "title"], "description": "Field to sort by (default: created_at)"},
+                            "sort_order": {"type": "string", "enum": ["asc", "desc"], "description": "Sort direction (default: desc)"}
                         },
                         "required": ["user_id"]
                     }
@@ -173,14 +207,19 @@ Always respond in a friendly, helpful tone and confirm actions taken."""
                 "type": "function",
                 "function": {
                     "name": "update_task",
-                    "description": "Update a task's details",
+                    "description": "Update a task's details including priority, tags, due date, recurrence, and reminders",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "user_id": {"type": "string", "description": "The user's ID"},
                             "task_id": {"type": "integer", "description": "The ID of the task to update"},
-                            "title": {"type": "string", "description": "New title for the task (optional)"},
-                            "description": {"type": "string", "description": "New description for the task (optional)"}
+                            "title": {"type": "string", "description": "New title for the task"},
+                            "description": {"type": "string", "description": "New description for the task"},
+                            "priority": {"type": "string", "enum": ["high", "medium", "low"], "description": "New priority level"},
+                            "tags": {"type": "array", "items": {"type": "string"}, "description": "New list of tag names (replaces existing tags)"},
+                            "due_date": {"type": "string", "description": "New due date in ISO format (e.g. 2025-06-15T09:00:00Z)"},
+                            "recurrence_rule": {"type": "string", "enum": ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"], "description": "New recurrence rule"},
+                            "reminder_enabled": {"type": "boolean", "description": "Whether to enable reminders"}
                         },
                         "required": ["user_id", "task_id"]
                     }

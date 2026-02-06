@@ -337,6 +337,7 @@ export default function TaskList({ userId }: TaskListProps) {
           onSubmit={handleSubmitTask}
           onCancel={handleCancelForm}
           initialData={editingTask || undefined}
+          submitLabel={editingTask ? 'Update Task' : 'Create Task'}
         />
       )}
 

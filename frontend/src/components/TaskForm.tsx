@@ -8,6 +8,7 @@ import TimePicker from '@/components/TimePicker';
 import RecurringToggle from '@/components/RecurringToggle';
 
 interface TaskFormData {
+  id?: number;
   title: string;
   description: string;
   priority: 'high' | 'medium' | 'low' | null;
@@ -18,7 +19,7 @@ interface TaskFormData {
 }
 
 interface TaskFormProps {
-  initialData?: Partial<TaskFormData>;
+  initialData?: Partial<TaskFormData> & { id?: number };
   onSubmit: (data: TaskFormData) => void;
   onCancel?: () => void;
   submitLabel?: string;
@@ -93,7 +94,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Include the id if editing an existing task
+    onSubmit({ ...formData, id: initialData.id });
   };
 
   return (

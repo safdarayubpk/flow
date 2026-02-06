@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { apiCall } from '@/lib/auth';
 import NotificationService from '@/services/notificationService';
 
@@ -16,6 +16,7 @@ interface Task {
 const POLL_INTERVAL_MS = 30000; // Poll every 30 seconds
 const REMINDER_WINDOW_MS = 60000; // Notify if due within 1 minute
 const NOTIFIED_TASKS_KEY = 'notified_reminder_tasks';
+const APP_NOTIFICATIONS_KEY = 'app_notifications_enabled';
 
 /**
  * Hook that polls for tasks with reminders and shows browser notifications
@@ -23,6 +24,25 @@ const NOTIFIED_TASKS_KEY = 'notified_reminder_tasks';
  */
 export function useReminderPoller(enabled: boolean = true) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [appNotificationsEnabled, setAppNotificationsEnabled] = useState<boolean>(true);
+
+  // Load and listen for app notification preference changes
+  useEffect(() => {
+    const stored = localStorage.getItem(APP_NOTIFICATIONS_KEY);
+    if (stored !== null) {
+      setAppNotificationsEnabled(stored === 'true');
+    }
+
+    const handleToggle = (e: Event) => {
+      const customEvent = e as CustomEvent<boolean>;
+      setAppNotificationsEnabled(customEvent.detail);
+    };
+
+    window.addEventListener('app-notifications-changed', handleToggle);
+    return () => {
+      window.removeEventListener('app-notifications-changed', handleToggle);
+    };
+  }, []);
 
   // Get already-notified task IDs from localStorage
   const getNotifiedTasks = useCallback((): Set<number> => {
@@ -109,7 +129,14 @@ export function useReminderPoller(enabled: boolean = true) {
   }, [getNotifiedTasks, markTaskNotified]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !appNotificationsEnabled) {
+      // Clear any existing interval if disabled
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
 
     // Check immediately on mount
     checkReminders();
@@ -122,7 +149,7 @@ export function useReminderPoller(enabled: boolean = true) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [enabled, checkReminders]);
+  }, [enabled, appNotificationsEnabled, checkReminders]);
 
-  return { checkReminders };
+  return { checkReminders, appNotificationsEnabled };
 }
