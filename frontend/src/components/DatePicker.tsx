@@ -13,7 +13,10 @@ const DatePicker: React.FC<DatePickerProps> = ({ date, onDateChange, placeholder
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value) {
-      onDateChange(new Date(value));
+      // Parse as local date, not UTC
+      // new Date("2026-02-06") parses as UTC midnight, which causes timezone issues
+      const [year, month, day] = value.split('-').map(Number);
+      onDateChange(new Date(year, month - 1, day));
     } else {
       onDateChange(undefined);
     }
