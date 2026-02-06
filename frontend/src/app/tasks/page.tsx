@@ -5,9 +5,13 @@ import TaskList from '@/components/TaskList';
 import ChatWidget from '@/components/ChatWidget';
 import NotificationPermissionHandler from '@/components/NotificationPermissionHandler';
 import { useAuth } from '@/hooks/useAuth';
+import { useReminderPoller } from '@/hooks/useReminderPoller';
 
 export default function TasksPage() {
   const { state, logout } = useAuth();
+
+  // Start reminder polling when authenticated
+  useReminderPoller(state.isAuthenticated);
 
   // Show loading spinner while checking auth
   if (state.isLoading) {

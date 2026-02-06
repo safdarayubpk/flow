@@ -165,10 +165,13 @@ export default function ChatInterface({ initialConversationId }: ChatProps) {
             <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-2">Hi! I'm your Todo Assistant</h3>
             <p className="text-xs sm:text-sm">Try saying:</p>
             <ul className="mt-2 text-left text-xs space-y-1 text-gray-600">
-              <li className="bg-gray-100 rounded px-2 py-1.5">"Add a task to buy groceries"</li>
-              <li className="bg-gray-100 rounded px-2 py-1.5">"Show my tasks"</li>
-              <li className="bg-gray-100 rounded px-2 py-1.5">"Complete task 3"</li>
+              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Add</strong> high priority task "Finish report" with tag work due tomorrow at 5 PM recurring weekly</li>
+              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Show</strong> my urgent tasks due this week</li>
+              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Add</strong> recurring team meeting every Monday at 10 AM with reminder</li>
+              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Filter</strong> tasks with tag home and priority medium</li>
+              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Sort</strong> my tasks by due date</li>
             </ul>
+            <p className="mt-3 text-xs text-gray-400">More commands available — just ask naturally!</p>
           </div>
         ) : (
           messages.map((message) => (
