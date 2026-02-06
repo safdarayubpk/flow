@@ -35,8 +35,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
   className = ''
 }) => {
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    // Ensure the date string is treated as UTC if no timezone specified
+    // Backend may return "2026-02-06T06:00:00" without Z suffix
+    let normalizedDateString = dateString;
+    if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
+      normalizedDateString = dateString + 'Z';
+    }
+    const date = new Date(normalizedDateString);
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',

@@ -103,7 +103,12 @@ export function useReminderPoller(enabled: boolean = true) {
           continue;
         }
 
-        const dueTime = new Date(task.due_date).getTime();
+        // Normalize date string - add Z suffix if no timezone specified
+        let dueDateStr = task.due_date;
+        if (!dueDateStr.endsWith('Z') && !dueDateStr.includes('+') && !dueDateStr.includes('-', 10)) {
+          dueDateStr = dueDateStr + 'Z';
+        }
+        const dueTime = new Date(dueDateStr).getTime();
         const timeUntilDue = dueTime - now;
 
         // Notify if due within the reminder window (1 minute) or just passed (within 5 min)
