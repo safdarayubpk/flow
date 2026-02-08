@@ -50,16 +50,16 @@ export default function TasksPage() {
             >
               Todo Tasks
             </a>
-            <nav className="flex gap-4">
+            <nav className="flex gap-1 sm:gap-2">
               <a
                 href="/tasks"
-                className="text-indigo-600 font-medium border-b-2 border-indigo-600 pb-1 min-h-[44px] sm:min-h-0 flex items-center"
+                className="text-indigo-600 font-medium border-b-2 border-indigo-600 px-3 py-2 min-h-[44px] sm:min-h-0 flex items-center rounded-t-md hover:bg-indigo-50 transition-colors"
               >
                 Tasks
               </a>
               <a
                 href="/chat"
-                className="text-gray-500 hover:text-indigo-600 font-medium pb-1 min-h-[44px] sm:min-h-0 flex items-center"
+                className="text-gray-500 hover:text-indigo-600 font-medium px-3 py-2 min-h-[44px] sm:min-h-0 flex items-center rounded-t-md hover:bg-gray-50 transition-colors"
               >
                 AI Chat
               </a>
