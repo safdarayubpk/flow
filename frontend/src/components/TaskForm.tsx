@@ -130,22 +130,32 @@ const TaskForm: React.FC<TaskFormProps> = ({
       <div className="space-y-1">
         <span className="block text-sm font-medium text-gray-700">Priority</span>
         <div className="flex space-x-2">
-          {(['high', 'medium', 'low'] as const).map(level => (
-            <button
-              key={level}
-              type="button"
-              className={`px-3 py-1 rounded-md text-sm ${
-                formData.priority === level
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              onClick={() => setFormData(prev => ({ ...prev, priority: prev.priority === level ? null : level }))}
-            >
-              {level.charAt(0).toUpperCase() + level.slice(1)}
-            </button>
-          ))}
+          {(['high', 'medium', 'low'] as const).map(level => {
+            const isSelected = formData.priority === level;
+            const colorClasses: Record<string, string> = {
+              high: isSelected
+                ? 'bg-red-100 border-red-500 text-red-700 ring-1 ring-red-500'
+                : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:border-red-300 border border-gray-200',
+              medium: isSelected
+                ? 'bg-yellow-100 border-yellow-500 text-yellow-700 ring-1 ring-yellow-500'
+                : 'bg-gray-100 text-gray-700 hover:bg-yellow-50 hover:border-yellow-300 border border-gray-200',
+              low: isSelected
+                ? 'bg-green-100 border-green-500 text-green-700 ring-1 ring-green-500'
+                : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:border-green-300 border border-gray-200',
+            };
+
+            return (
+              <button
+                key={level}
+                type="button"
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${colorClasses[level]}`}
+                onClick={() => setFormData(prev => ({ ...prev, priority: prev.priority === level ? null : level }))}
+              >
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </button>
+            );
+          })}
         </div>
-        {formData.priority && <PriorityBadge priority={formData.priority} className="mt-2" />}
       </div>
 
       {/* Tags */}

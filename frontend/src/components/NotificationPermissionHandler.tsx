@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 const APP_NOTIFICATIONS_KEY = 'app_notifications_enabled';
+const BANNER_DISMISSED_KEY = 'notification_banner_dismissed';
 
 interface NotificationPermissionHandlerProps {
   onPermissionChange?: (permission: NotificationPermission) => void;
@@ -18,6 +19,7 @@ const NotificationPermissionHandler: React.FC<NotificationPermissionHandlerProps
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isSupported, setIsSupported] = useState<boolean>(false);
   const [appNotificationsEnabled, setAppNotificationsEnabled] = useState<boolean>(true);
+  const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -31,7 +33,22 @@ const NotificationPermissionHandler: React.FC<NotificationPermissionHandlerProps
     if (stored !== null) {
       setAppNotificationsEnabled(stored === 'true');
     }
+    // Load banner dismissed state
+    const dismissed = localStorage.getItem(BANNER_DISMISSED_KEY);
+    if (dismissed === 'true') {
+      setIsDismissed(true);
+    }
   }, []);
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
+  };
+
+  const handleShowBanner = () => {
+    setIsDismissed(false);
+    localStorage.removeItem(BANNER_DISMISSED_KEY);
+  };
 
   const requestPermission = async () => {
     if (!isSupported) return;
@@ -69,6 +86,23 @@ const NotificationPermissionHandler: React.FC<NotificationPermissionHandlerProps
   }
 
   if (permission === 'granted') {
+    // Show minimal indicator when dismissed and notifications are enabled
+    if (isDismissed && appNotificationsEnabled) {
+      return (
+        <div className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}>
+          <span className="h-2 w-2 rounded-full bg-green-500" title="Notifications enabled" />
+          <span className="text-xs text-gray-400">Notifications on</span>
+          <button
+            type="button"
+            onClick={handleShowBanner}
+            className="text-xs text-gray-400 hover:text-gray-600 underline"
+          >
+            Settings
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className={`rounded-lg border ${appNotificationsEnabled ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'} p-4 ${className}`}>
         <div className="flex items-center justify-between">
@@ -82,21 +116,35 @@ const NotificationPermissionHandler: React.FC<NotificationPermissionHandlerProps
                 : 'Task reminders are currently paused.'}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={toggleAppNotifications}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-              appNotificationsEnabled ? 'bg-green-500' : 'bg-gray-300'
-            }`}
-            role="switch"
-            aria-checked={appNotificationsEnabled}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                appNotificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleAppNotifications}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                appNotificationsEnabled ? 'bg-green-500' : 'bg-gray-300'
               }`}
-            />
-          </button>
+              role="switch"
+              aria-checked={appNotificationsEnabled}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  appNotificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+            {appNotificationsEnabled && (
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="text-gray-400 hover:text-gray-600 p-1"
+                aria-label="Dismiss notification banner"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

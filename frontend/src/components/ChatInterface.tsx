@@ -161,17 +161,32 @@ export default function ChatInterface({ initialConversationId }: ChatProps) {
     <div className="flex flex-col h-full bg-white">
       <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 px-2">
-            <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-2">Hi! I'm your Todo Assistant</h3>
-            <p className="text-xs sm:text-sm">Try saying:</p>
-            <ul className="mt-2 text-left text-xs space-y-1 text-gray-600">
-              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Add</strong> high priority task "Finish report" with tag work due tomorrow at 5 PM recurring weekly</li>
-              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Show</strong> my urgent tasks due this week</li>
-              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Add</strong> recurring team meeting every Monday at 10 AM with reminder</li>
-              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Filter</strong> tasks with tag home and priority medium</li>
-              <li className="bg-gray-100 rounded px-2 py-1.5"><strong>Sort</strong> my tasks by due date</li>
-            </ul>
-            <p className="mt-3 text-xs text-gray-400">More commands available — just ask naturally!</p>
+          <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 px-4">
+            <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-2">
+              Hi! I'm your Todo Assistant
+            </h3>
+            <p className="text-xs sm:text-sm mb-4">Try one of these:</p>
+
+            <div className="flex flex-wrap gap-2 justify-center max-w-md">
+              {[
+                'Add a task for tomorrow',
+                'Show high priority tasks',
+                "What's due this week?",
+              ].map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => setInputValue(prompt)}
+                  className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 rounded-full transition-colors cursor-pointer"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+
+            <p className="mt-6 text-xs text-gray-400">
+              Or just ask naturally!
+            </p>
           </div>
         ) : (
           messages.map((message) => (

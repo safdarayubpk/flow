@@ -52,7 +52,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <div className={`flex flex-col p-3 sm:p-4 mb-3 bg-white shadow rounded-lg border border-gray-200 ${className}`}>
+    <div className={`group flex flex-col p-3 sm:p-4 mb-3 bg-white shadow rounded-lg border border-gray-200 hover:shadow-md transition-shadow ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
         <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
           <input
@@ -97,7 +97,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-row gap-2 ml-7 sm:ml-0">
+        <div className="flex flex-row gap-2 ml-7 sm:ml-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150">
           <button
             onClick={() => onEdit(task.id)}
             className="inline-flex items-center justify-center px-3 py-2 sm:py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
