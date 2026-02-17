@@ -2,8 +2,8 @@
 
 # Image configuration
 image:
-  repository: todo-frontend
-  tag: k8s
+  repository: safdarayub/todo-frontend
+  tag: v3-complete
   pullPolicy: IfNotPresent
 
 # Service configuration

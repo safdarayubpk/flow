@@ -2,8 +2,8 @@
 
 # Image configuration
 image:
-  repository: todo-backend
-  tag: k8s
+  repository: safdarayub/todo-backend
+  tag: v3-complete
   pullPolicy: IfNotPresent
 
 # Service configuration
