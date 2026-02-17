@@ -14,3 +14,6 @@ alembic==1.13.3
 better-auth==0.0.1b11
 openai>=1.0.0
 mcp>=0.3.0
+dapr>=1.14.0
+dapr-ext-fastapi>=1.14.0
+cloudevents>=1.11.0

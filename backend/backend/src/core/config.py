@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # Dapr Configuration (Phase V.3 - Dapr Microservices & Pub/Sub)
     dapr_pubsub_name: str = "kafka-pubsub"  # Dapr pubsub component name (defined in backend/components/)
     dapr_app_id: str = "todo-backend"       # Dapr app ID for service invocation
-    dapr_enabled: bool = True               # Enable/disable Dapr integration (for graceful degradation)
+    dapr_enabled: bool = False              # Enable/disable Dapr integration (set True when sidecar is running)
 
     @property
     def is_production(self) -> bool:

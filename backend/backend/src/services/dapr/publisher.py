@@ -58,6 +58,11 @@ def publish_event(
         "payload": event_data,
     }
 
+    # Skip immediately if Dapr is disabled (e.g., HF Spaces with no sidecar)
+    if not settings.dapr_enabled:
+        logger.debug(f"Dapr disabled, skipping event: {event_type}")
+        return False
+
     try:
         # Use Dapr client to publish event to pubsub component
         with DaprClient() as dapr_client:
