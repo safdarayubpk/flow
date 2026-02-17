@@ -1,8 +1,12 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
-from sqlmodel import Session
+from sqlmodel import Session, select
 from src.models.task import Task
 from src.services.task_service import TaskService
+
+# Dapr event publishing (Phase V.3)
+from src.services.dapr.publisher import fire_event
+from src.services.dapr.events import EventTypes
 
 
 class RecurringService:
@@ -25,8 +29,36 @@ class RecurringService:
             .where(Task.completed == False)
         )
 
-        from sqlmodel import select
         recurring_tasks = session.exec(recurring_tasks_query).all()
+
+        # Also check for tasks with reminders that are due
+        reminder_tasks_query = (
+            select(Task)
+            .where(Task.reminder_enabled == True)
+            .where(Task.deleted_at.is_(None))
+            .where(Task.completed == False)
+            .where(Task.due_date.is_not(None))
+            .where(Task.due_date <= datetime.utcnow())
+        )
+        reminder_tasks = session.exec(reminder_tasks_query).all()
+
+        # Publish reminder-triggered events for due tasks
+        for task in reminder_tasks:
+            fire_event(
+                event_type=EventTypes.REMINDER_TRIGGERED,
+                user_id=task.user_id,
+                payload={
+                    "task_id": task.id,
+                    "title": task.title,
+                    "due_date": task.due_date.isoformat() if task.due_date else None,
+                }
+            )
+            # Disable reminder after triggering to avoid duplicate notifications
+            task.reminder_enabled = False
+            session.add(task)
+
+        if reminder_tasks:
+            session.commit()
 
         created_tasks = []
         for task in recurring_tasks:
@@ -36,6 +68,12 @@ class RecurringService:
                     session=session,
                     original_task=task
                 )
+                # Mark original as completed so it isn't rescheduled again
+                task.completed = True
+                task.updated_at = datetime.utcnow()
+                session.add(task)
+                session.commit()
+
                 created_tasks.append(new_task)
 
         return created_tasks

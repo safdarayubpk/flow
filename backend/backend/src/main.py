@@ -1,6 +1,11 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel
+from dapr.ext.fastapi import DaprApp
+from sqlmodel import SQLModel, Session
 from src.api.v1.auth import router as auth_router
 from src.api.v1.tasks import router as tasks_router
 from src.api.v1.chat import router as chat_router
@@ -15,6 +20,11 @@ from src.models.tag import Tag
 from src.models.conversation import Conversation
 from src.models.message import Message
 from src.models.task_tag_link import TaskTagLink
+
+logger = logging.getLogger(__name__)
+
+# Scheduler interval in seconds (default 60s, configurable via env)
+RECURRING_INTERVAL_SECONDS = int(getattr(settings, "recurring_interval_seconds", 60))
 
 
 def create_db_and_tables():
@@ -42,11 +52,50 @@ def create_db_and_tables():
             conn.commit()
 
 
+async def _recurring_task_loop():
+    """Background loop that processes recurring tasks on a fixed interval."""
+    from src.services.recurring_service import RecurringService
+
+    while True:
+        await asyncio.sleep(RECURRING_INTERVAL_SECONDS)
+        try:
+            with Session(engine) as session:
+                created = RecurringService.process_recurring_tasks(session=session)
+                if created:
+                    logger.info("Recurring scheduler created %d task(s)", len(created))
+        except Exception:
+            logger.exception("Recurring task scheduler error")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: DB migrations + Dapr setup + recurring-task scheduler. Shutdown: cleanup all."""
+    # Phase 1: Database setup
+    create_db_and_tables()
+
+    # Phase 2: Dapr subscriptions are registered in create_app() via register_subscriptions()
+    logger.info("Dapr subscription handlers active")
+
+    # Phase 3: Background tasks (recurring scheduler continues as safety net per FR-007)
+    recurring_scheduler_task = asyncio.create_task(_recurring_task_loop())
+    logger.info("Recurring task scheduler started (interval=%ds)", RECURRING_INTERVAL_SECONDS)
+
+    yield
+
+    # Shutdown: Cancel recurring scheduler
+    recurring_scheduler_task.cancel()
+    try:
+        await recurring_scheduler_task
+    except asyncio.CancelledError:
+        pass
+    logger.info("Recurring task scheduler stopped")
+
+
 def create_app():
     """
     Create and configure the FastAPI application.
     """
-    app = FastAPI(title="Todo Application API", version="1.0.0")
+    app = FastAPI(title="Todo Application API", version="1.0.0", lifespan=lifespan)
 
     # CORS middleware - specify exact origins when using credentials
     # Note: Cannot use ["*"] with allow_credentials=True
@@ -68,10 +117,9 @@ def create_app():
     app.include_router(chat_router, prefix="/api/v1/chat", tags=["chat"])
     app.include_router(tags_router, prefix="/api/v1/tags", tags=["tags"])
 
-    @app.on_event("startup")
-    def on_startup():
-        """Create database tables on startup"""
-        create_db_and_tables()
+    # Import and include Dapr service invocation endpoints
+    from src.services.dapr.service_invocation import register_dapr_endpoints
+    register_dapr_endpoints(app)
 
     @app.get("/")
     def read_root():
@@ -81,6 +129,11 @@ def create_app():
     def health_check():
         """Health check endpoint for deployment monitoring"""
         return {"status": "healthy", "version": "1.0.0"}
+
+    # Initialize DaprApp wrapper and register subscriptions on the SAME app instance
+    dapr_app = DaprApp(app)
+    from src.services.dapr.subscriptions import register_subscriptions
+    register_subscriptions(dapr_app)
 
     return app
 
