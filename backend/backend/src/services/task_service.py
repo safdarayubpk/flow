@@ -6,7 +6,7 @@ from src.models.tag import Tag
 from src.models.task_tag_link import TaskTagLink
 from src.models.user import User
 from src.core.isolation import ensure_user_owns_resource, get_user_resources
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Dapr event publishing (Phase V.3)
 from src.services.dapr.publisher import fire_event
@@ -103,14 +103,14 @@ class TaskService:
 
         # Handle soft delete - if a task is "deleted", set the deleted_at timestamp
         if update_data.get("deleted_at"):
-            update_data["deleted_at"] = datetime.utcnow()
+            update_data["deleted_at"] = datetime.now(timezone.utc)
 
         # Update the task with the new data
         for field, value in update_data.items():
             setattr(task, field, value)
 
         # Update the updated_at timestamp
-        task.updated_at = datetime.utcnow()
+        task.updated_at = datetime.now(timezone.utc)
 
         session.add(task)
         session.commit()
@@ -139,8 +139,8 @@ class TaskService:
         task = ensure_user_owns_resource(session, Task, task_id, user_id)
 
         # Perform soft delete by setting the deleted_at timestamp
-        task.deleted_at = datetime.utcnow()
-        task.updated_at = datetime.utcnow()
+        task.deleted_at = datetime.now(timezone.utc)
+        task.updated_at = datetime.now(timezone.utc)
 
         session.add(task)
         session.commit()
@@ -167,7 +167,7 @@ class TaskService:
 
         # Toggle the completion status
         task.completed = not task.completed
-        task.updated_at = datetime.utcnow()
+        task.updated_at = datetime.now(timezone.utc)
 
         session.add(task)
         session.commit()
@@ -240,7 +240,9 @@ class TaskService:
                 query = query.where(Task.recurrence_rule.is_(None))
 
         if search:
-            search_lower = f"%{search.lower()}%"
+            # Escape LIKE wildcards to prevent pattern injection
+            search_escaped = search.lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            search_lower = f"%{search_escaped}%"
             from sqlalchemy import or_
             query = query.where(
                 or_(

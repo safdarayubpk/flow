@@ -12,7 +12,7 @@ We use a single subscription on 'todo-events' and dispatch by event_type interna
 """
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
 
 from dapr.ext.fastapi import DaprApp
@@ -242,7 +242,7 @@ def _calculate_next_occurrence(recurrence_rule: str) -> datetime:
     Calculate the next occurrence date based on recurrence rule.
     Simplified implementation matching recurring_service.py logic.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     if "DAILY" in recurrence_rule.upper() or "INTERVAL=1" in recurrence_rule.upper():
         return now + timedelta(days=1)

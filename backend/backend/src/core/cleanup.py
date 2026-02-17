@@ -4,7 +4,7 @@ This implements scheduled cleanup for soft-deleted tasks after retention period.
 """
 
 from sqlmodel import Session, select
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.models.task import Task
 from src.core.database import engine
 
@@ -19,7 +19,7 @@ def cleanup_soft_deleted_tasks(retention_days: int = 30) -> int:
     Returns:
         Number of tasks permanently deleted
     """
-    cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
 
     with Session(engine) as session:
         # Find tasks that were soft deleted before the cutoff date

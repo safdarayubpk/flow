@@ -1,8 +1,11 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 from typing import Dict, Any, Optional
 from datetime import datetime
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 from src.core.auth import get_current_user
 from src.core.database import get_session
@@ -93,9 +96,10 @@ def chat_endpoint(
         # Re-raise HTTP exceptions
         raise
     except Exception as e:
+        logger.error("Chat processing error: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred during chat processing: {str(e)}"
+            detail="An error occurred during chat processing. Please try again."
         )
 
 
@@ -134,9 +138,10 @@ def list_user_conversations(
 
         return result
     except Exception as e:
+        logger.error("Error fetching conversations: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while fetching conversations: {str(e)}"
+            detail="An error occurred while fetching conversations."
         )
 
 
@@ -189,7 +194,8 @@ def get_conversation_detail(
     except HTTPException:
         raise
     except Exception as e:
+        logger.error("Error fetching conversation details: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while fetching conversation details: {str(e)}"
+            detail="An error occurred while fetching conversation details."
         )

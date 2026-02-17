@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from sqlmodel import Session, select
 from src.models.task import Task
@@ -38,7 +38,7 @@ class RecurringService:
             .where(Task.deleted_at.is_(None))
             .where(Task.completed == False)
             .where(Task.due_date.is_not(None))
-            .where(Task.due_date <= datetime.utcnow())
+            .where(Task.due_date <= datetime.now(timezone.utc))
         )
         reminder_tasks = session.exec(reminder_tasks_query).all()
 
@@ -70,7 +70,7 @@ class RecurringService:
                 )
                 # Mark original as completed so it isn't rescheduled again
                 task.completed = True
-                task.updated_at = datetime.utcnow()
+                task.updated_at = datetime.now(timezone.utc)
                 session.add(task)
                 session.commit()
 
@@ -91,7 +91,7 @@ class RecurringService:
         # This is a simplified implementation
         if task.due_date:
             # Check if due date has passed and task is not completed
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             if task.due_date < now and not task.completed:
                 return True
 
@@ -134,7 +134,7 @@ class RecurringService:
         This is a simplified implementation - in a real system, you would parse the rrule string.
         """
         if not current_date:
-            current_date = datetime.utcnow()
+            current_date = datetime.now(timezone.utc)
 
         # Simplified implementation - in reality, you would parse the rrule string
         # For now, assume different patterns based on the rule content

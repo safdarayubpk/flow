@@ -48,7 +48,7 @@ async def dapr_health_endpoint() -> Dict[str, Any]:
         "publish_counter": publish_counter,
         "subscription_counter": subscription_counter,
         "features": ["pubsub", "service_invocation", "user_isolation"],
-        "timestamp": __import__('datetime').datetime.utcnow().isoformat()
+        "timestamp": __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()
     }
 
     logger.info("Dapr health endpoint called, returning status: %s", health_info["status"])

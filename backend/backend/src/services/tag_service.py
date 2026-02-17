@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from typing import List, Optional
 from src.models.tag import Tag, TagCreate, TagUpdate
 from src.core.isolation import ensure_user_owns_resource, get_user_resources
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class TagService:
@@ -76,7 +76,7 @@ class TagService:
             setattr(tag, field, value)
 
         # Update the updated_at timestamp
-        tag.updated_at = datetime.utcnow()
+        tag.updated_at = datetime.now(timezone.utc)
 
         session.add(tag)
         session.commit()
