@@ -216,6 +216,10 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon PostgreSQL serverless database with SQLModel ORM (002-fullstack-todo-app)
 - Python 3.13+ (backend), TypeScript/JavaScript (frontend), YAML (Kubernetes manifests) + Docker, Minikube v1.37.0, kubectl v1.35.x, Helm v4.1.0, kubectl-ai (004-k8s-minikube-deployment)
 - Neon PostgreSQL (existing, reused via DATABASE_URL in Kubernetes Secret) (004-k8s-minikube-deployment)
+- Python 3.13+ (backend only; no frontend changes) + FastAPI, SQLModel, aiokafka>=0.10.0 (new) (006-kafka-events)
+- Neon PostgreSQL (existing, no schema changes for Kafka) (006-kafka-events)
+- Python 3.13+ + FastAPI, SQLModel, dapr (Python SDK), dapr-ext-fastapi, existing Neon PostgreSQL (007-dapr-microservices)
+- Neon PostgreSQL (unchanged), Kafka via docker-compose (unchanged) (007-dapr-microservices)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.13+ + Standard Python libraries (built-ins)

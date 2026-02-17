@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     # CORS Configuration - comma-separated origins
     cors_origins: str = "http://localhost:3000,https://frontend-blue-six-59.vercel.app"
 
+    # Kafka Configuration (Phase V.2 - Event-Driven Architecture - reference for Dapr)
+    kafka_bootstrap_servers: Optional[str] = None  # e.g., "localhost:9092" - Dapr pubsub component uses this
+    kafka_topic: str = "todo-events"
+
+    # Dapr Configuration (Phase V.3 - Dapr Microservices & Pub/Sub)
+    dapr_pubsub_name: str = "kafka-pubsub"  # Dapr pubsub component name (defined in backend/components/)
+    dapr_app_id: str = "todo-backend"       # Dapr app ID for service invocation
+    dapr_enabled: bool = True               # Enable/disable Dapr integration (for graceful degradation)
+
     @property
     def is_production(self) -> bool:
         return self.environment.lower() == "production"

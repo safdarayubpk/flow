@@ -8,6 +8,10 @@ from src.models.user import User
 from src.core.isolation import ensure_user_owns_resource, get_user_resources
 from datetime import datetime
 
+# Dapr event publishing (Phase V.3)
+from src.services.dapr.publisher import fire_event
+from src.services.dapr.events import EventTypes
+
 
 class TaskService:
     """
@@ -36,6 +40,31 @@ class TaskService:
         session.add(db_task)
         session.commit()
         session.refresh(db_task)
+
+        # Publish task-created event (fire-and-forget)
+        fire_event(
+            event_type=EventTypes.TASK_CREATED,
+            user_id=user_id,
+            payload={
+                "task_id": db_task.id,
+                "title": db_task.title,
+                "priority": db_task.priority,
+                "tags": [],  # Tags linked separately
+                "due_date": db_task.due_date.isoformat() if db_task.due_date else None,
+            }
+        )
+
+        # If recurring task, also publish recurring-task-created event
+        if db_task.recurrence_rule:
+            fire_event(
+                event_type=EventTypes.RECURRING_TASK_CREATED,
+                user_id=user_id,
+                payload={
+                    "task_id": db_task.id,
+                    "title": db_task.title,
+                    "recurrence_rule": db_task.recurrence_rule,
+                }
+            )
 
         return db_task
 
@@ -87,6 +116,17 @@ class TaskService:
         session.commit()
         session.refresh(task)
 
+        # Publish task-updated event (fire-and-forget)
+        if update_data:  # Only publish if there were actual changes
+            fire_event(
+                event_type=EventTypes.TASK_UPDATED,
+                user_id=user_id,
+                payload={
+                    "task_id": task.id,
+                    "changes": update_data,
+                }
+            )
+
         return task
 
     @staticmethod
@@ -104,6 +144,15 @@ class TaskService:
 
         session.add(task)
         session.commit()
+
+        # Publish task-deleted event (fire-and-forget)
+        fire_event(
+            event_type=EventTypes.TASK_DELETED,
+            user_id=user_id,
+            payload={
+                "task_id": task_id,
+            }
+        )
 
         return True
 
@@ -123,6 +172,16 @@ class TaskService:
         session.add(task)
         session.commit()
         session.refresh(task)
+
+        # Publish task-completed event only when task is marked as completed
+        if task.completed:
+            fire_event(
+                event_type=EventTypes.TASK_COMPLETED,
+                user_id=user_id,
+                payload={
+                    "task_id": task.id,
+                }
+            )
 
         return task
 
