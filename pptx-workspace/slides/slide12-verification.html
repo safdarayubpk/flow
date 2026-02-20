@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #ffffff; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; }
+.bg { position: absolute; width: 720pt; height: 405pt; }
+.header { position: absolute; top: 0; left: 0; width: 720pt; height: 60pt; background: #1C2833; display: flex; align-items: center; }
+.bar { position: absolute; top: 60pt; left: 0; width: 720pt; height: 4pt; }
+.body { position: relative; margin: 76pt 30pt 10pt 30pt; }
+.check { display: flex; align-items: center; gap: 8pt; margin-bottom: 8pt; }
+.pass { background: #27AE60; color: #FFFFFF; font-size: 10pt; padding: 2pt 8pt; border-radius: 3pt; }
+</style></head><body>
+<img class="bg" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/light-bg.png">
+<div class="header"><h1 style="color: #FFFFFF; font-size: 24pt; margin: 0 0 0 40pt;">Verification Results</h1></div>
+<img class="bar" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/accent-bar.png">
+<div class="body">
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">kubectl get pods - all Running</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">kubectl get svc - correct ports (7860, 80, 9092)</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">kubectl get ingress - LB IP 139.185.51.243 assigned</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">curl /api/v1/auth/session - backend responds (HTTP 200)</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">curl / - frontend loads (HTTP 200)</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">Browser signup + login - authentication works</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">Task create/edit/delete - CRUD operations verified</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">Dapr event publish to Kafka - event pipeline working</p></div>
+  <div class="check"><div class="pass"><p style="color: #FFFFFF; font-size: 10pt; margin: 0;">PASS</p></div><p style="font-size: 13pt; color: #2C3E50; margin: 0;">Resource budget - 238m CPU / 800Mi within 1 OCPU / 8GB</p></div>
+  <div style="background: #EAFAF1; border-radius: 6pt; padding: 10pt 16pt; margin-top: 10pt;">
+    <p style="font-size: 14pt; color: #1E8449; margin: 0;"><b>33/33 tasks completed across all 6 phases</b></p>
+  </div>
+</div>
+</body></html>

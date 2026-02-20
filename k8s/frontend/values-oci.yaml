@@ -1,0 +1,20 @@
+# OCI OKE deployment overrides for todo-frontend
+# Usage: helm upgrade --install todo-frontend ./k8s/frontend --values k8s/frontend/values-oci.yaml
+
+image:
+  repository: safdarayub/todo-frontend
+  tag: v3-complete
+  pullPolicy: Always
+
+resources:
+  requests:
+    cpu: 64m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 384Mi
+
+env:
+  LOG_LEVEL: "INFO"
+  NEXT_PUBLIC_API_URL: "http://139.185.51.243/api"
+  BETTER_AUTH_URL: "http://139.185.51.243"

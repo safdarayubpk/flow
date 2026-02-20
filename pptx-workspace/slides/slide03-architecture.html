@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #ffffff; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; }
+.bg { position: absolute; width: 720pt; height: 405pt; }
+.header { position: absolute; top: 0; left: 0; width: 720pt; height: 60pt; background: #1C2833; display: flex; align-items: center; }
+.bar { position: absolute; top: 60pt; left: 0; width: 720pt; height: 4pt; }
+.body { position: relative; margin: 80pt 30pt 20pt 30pt; display: flex; gap: 16pt; }
+.col { flex: 1; }
+.box { background: #FFFFFF; border: 1pt solid #D5D8DC; border-radius: 6pt; padding: 10pt; margin-bottom: 10pt; }
+.box-orange { border-left: 4pt solid #E67E22; }
+.box-blue { border-left: 4pt solid #2E86C1; }
+.box-green { border-left: 4pt solid #27AE60; }
+</style></head><body>
+<img class="bg" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/light-bg.png">
+<div class="header"><h1 style="color: #FFFFFF; font-size: 24pt; margin: 0 0 0 40pt;">High-Level Architecture</h1></div>
+<img class="bar" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/accent-bar.png">
+<div class="body">
+  <div class="col">
+    <div class="box box-blue">
+      <p style="font-size: 13pt; color: #1C2833; margin: 0 0 4pt 0;"><b>Frontend</b></p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">Next.js 16 + Better Auth</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">Tailwind CSS + Task UI</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">AI Chat Interface</p>
+    </div>
+    <div class="box box-orange">
+      <p style="font-size: 13pt; color: #1C2833; margin: 0 0 4pt 0;"><b>Backend</b></p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">FastAPI + SQLModel</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">Dapr Sidecar (pub/sub)</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">Groq AI Integration</p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="box box-green">
+      <p style="font-size: 13pt; color: #1C2833; margin: 0 0 4pt 0;"><b>Infrastructure</b></p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">Apache Kafka (KRaft)</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">NGINX Ingress + OCI LB</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">Neon PostgreSQL (external)</p>
+    </div>
+    <div class="box" style="border-left: 4pt solid #8E44AD;">
+      <p style="font-size: 13pt; color: #1C2833; margin: 0 0 4pt 0;"><b>Platform</b></p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">OCI OKE (me-dubai-1)</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">1x VM.Standard.E2.1</p>
+      <p style="font-size: 11pt; color: #566573; margin: 0;">Helm Charts + kubectl</p>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -49,6 +49,10 @@ spec:
               value: {{ .Values.env.LOG_LEVEL | quote }}
             - name: NEXT_PUBLIC_API_URL
               value: {{ .Values.env.NEXT_PUBLIC_API_URL | quote }}
+            {{- if .Values.env.BETTER_AUTH_URL }}
+            - name: BETTER_AUTH_URL
+              value: {{ .Values.env.BETTER_AUTH_URL | quote }}
+            {{- end }}
           volumeMounts:
             - name: nextjs-cache
               mountPath: /app/.next/cache

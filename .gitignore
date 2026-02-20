@@ -92,3 +92,17 @@ cookies.txt
 k8s/secrets.yaml
 *.secret
 *.secrets
+
+# One-off scripts and binaries
+get-pip.py
+install_oci_cli.py
+/kubectl
+
+# PPTX workspace artifacts
+pptx-workspace/node_modules/
+pptx-workspace/package-lock.json
+pptx-workspace/thumbnails*.jpg
+
+# Dashboard screenshots (keep in repo for presentation)
+# final-dashboard-clean.png
+# task-dashboard-phase-v1.png
