@@ -220,6 +220,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon PostgreSQL (existing, no schema changes for Kafka) (006-kafka-events)
 - Python 3.13+ + FastAPI, SQLModel, dapr (Python SDK), dapr-ext-fastapi, existing Neon PostgreSQL (007-dapr-microservices)
 - Neon PostgreSQL (unchanged), Kafka via docker-compose (unchanged) (007-dapr-microservices)
+- Python 3.13+ (backend), TypeScript/JavaScript (frontend), YAML (Kubernetes manifests), Bash (deployment scripts) + FastAPI, SQLModel, Next.js 16+, Better Auth, Helm v4.1.0, kubectl v1.35+, Dapr CLI, OCI CLI (008-oci-oke-cloud-deployment)
+- Neon PostgreSQL (external, existing), OCI Block Volume (5Gi PVC for Kafka data via `oci-bv` StorageClass) (008-oci-oke-cloud-deployment)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.13+ + Standard Python libraries (built-ins)

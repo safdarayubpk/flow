@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #ffffff; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; }
+.bg { position: absolute; width: 720pt; height: 405pt; }
+.header { position: absolute; top: 0; left: 0; width: 720pt; height: 60pt; background: #1C2833; display: flex; align-items: center; }
+.bar { position: absolute; top: 60pt; left: 0; width: 720pt; height: 4pt; }
+.body { position: relative; margin: 76pt 30pt 10pt 30pt; }
+.row { display: flex; gap: 12pt; margin-bottom: 8pt; }
+.issue { flex: 1; background: #FDEDEC; border-left: 4pt solid #E74C3C; padding: 8pt 10pt; border-radius: 0 4pt 4pt 0; }
+.fix { flex: 1; background: #EAFAF1; border-left: 4pt solid #27AE60; padding: 8pt 10pt; border-radius: 0 4pt 4pt 0; }
+</style></head><body>
+<img class="bg" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/light-bg.png">
+<div class="header"><h1 style="color: #FFFFFF; font-size: 24pt; margin: 0 0 0 40pt;">Challenges &amp; Lessons Learned</h1></div>
+<img class="bar" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/accent-bar.png">
+<div class="body">
+  <div class="row">
+    <div class="issue"><p style="font-size: 11pt; color: #922B21; margin: 0;"><b>Kafka CrashLoop</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">Bitnami + Confluent images failed</p></div>
+    <div class="fix"><p style="font-size: 11pt; color: #1E8449; margin: 0;"><b>Apache Kafka KRaft</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">No Zookeeper needed, works on free tier</p></div>
+  </div>
+  <div class="row">
+    <div class="issue"><p style="font-size: 11pt; color: #922B21; margin: 0;"><b>MFA Token Expiry</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">OCI session expires every ~1 hour</p></div>
+    <div class="fix"><p style="font-size: 11pt; color: #1E8449; margin: 0;"><b>Session Refresh</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">oci session authenticate command</p></div>
+  </div>
+  <div class="row">
+    <div class="issue"><p style="font-size: 11pt; color: #922B21; margin: 0;"><b>Frontend Loading Bug</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">Ingress regex rewrite broke JS loading</p></div>
+    <div class="fix"><p style="font-size: 11pt; color: #1E8449; margin: 0;"><b>Split Ingress</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">Separate API + Frontend, no rewrite</p></div>
+  </div>
+  <div class="row">
+    <div class="issue"><p style="font-size: 11pt; color: #922B21; margin: 0;"><b>Signup Failed</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">Path rewrite doubled /api prefix</p></div>
+    <div class="fix"><p style="font-size: 11pt; color: #1E8449; margin: 0;"><b>Prefix Match</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">Pass /api/* as-is to backend</p></div>
+  </div>
+  <div class="row">
+    <div class="issue"><p style="font-size: 11pt; color: #922B21; margin: 0;"><b>Dapr Events Silent Fail</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">DAPR_ENABLED defaults to False</p></div>
+    <div class="fix"><p style="font-size: 11pt; color: #1E8449; margin: 0;"><b>Env Var Fix</b></p><p style="font-size: 9pt; color: #566573; margin: 2pt 0 0 0;">Added DAPR_ENABLED=true to Helm values</p></div>
+  </div>
+</div>
+</body></html>

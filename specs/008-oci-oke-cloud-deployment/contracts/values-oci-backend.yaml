@@ -1,0 +1,30 @@
+# OCI OKE deployment overrides for todo-backend
+# Usage: helm upgrade --install todo-backend ./k8s/backend --values k8s/backend/values-oci.yaml
+
+image:
+  repository: safdarayub/todo-backend
+  tag: v3-complete
+  pullPolicy: Always
+
+resources:
+  requests:
+    cpu: 64m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 384Mi
+
+env:
+  LOG_LEVEL: "INFO"
+  CORS_ORIGINS: "http://<LB_IP>"
+
+# Dapr sidecar injection
+podAnnotations:
+  dapr.io/enabled: "true"
+  dapr.io/app-id: "todo-backend"
+  dapr.io/app-port: "8000"
+  dapr.io/log-level: "warn"
+  dapr.io/sidecar-cpu-request: "10m"
+  dapr.io/sidecar-memory-request: "32Mi"
+  dapr.io/sidecar-cpu-limit: "100m"
+  dapr.io/sidecar-memory-limit: "64Mi"

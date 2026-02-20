@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #ffffff; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; }
+.bg { position: absolute; width: 720pt; height: 405pt; }
+.header { position: absolute; top: 0; left: 0; width: 720pt; height: 60pt; background: #1C2833; display: flex; align-items: center; }
+.bar { position: absolute; top: 60pt; left: 0; width: 720pt; height: 4pt; }
+.body { position: relative; margin: 80pt 40pt 20pt 40pt; }
+.item { display: flex; gap: 12pt; margin-bottom: 14pt; }
+.num-box { background: #E67E22; color: #FFFFFF; width: 28pt; height: 28pt; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+</style></head><body>
+<img class="bg" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/light-bg.png">
+<div class="header"><h1 style="color: #FFFFFF; font-size: 24pt; margin: 0 0 0 40pt;">Future Work</h1></div>
+<img class="bar" src="/home/safdarayub/Desktop/claude/Hackathon/flow/pptx-workspace/accent-bar.png">
+<div class="body">
+  <div class="item">
+    <div class="num-box"><p style="color: #FFFFFF; font-size: 14pt; margin: 0;"><b>1</b></p></div>
+    <div>
+      <p style="font-size: 15pt; color: #1C2833; margin: 0;"><b>HTTPS / TLS</b></p>
+      <p style="font-size: 11pt; color: #AAB7B8; margin: 2pt 0 0 0;">Install cert-manager + Let's Encrypt for secure connections</p>
+    </div>
+  </div>
+  <div class="item">
+    <div class="num-box"><p style="color: #FFFFFF; font-size: 14pt; margin: 0;"><b>2</b></p></div>
+    <div>
+      <p style="font-size: 15pt; color: #1C2833; margin: 0;"><b>Custom Domain</b></p>
+      <p style="font-size: 11pt; color: #AAB7B8; margin: 2pt 0 0 0;">Buy a domain and point DNS to the LoadBalancer IP</p>
+    </div>
+  </div>
+  <div class="item">
+    <div class="num-box"><p style="color: #FFFFFF; font-size: 14pt; margin: 0;"><b>3</b></p></div>
+    <div>
+      <p style="font-size: 15pt; color: #1C2833; margin: 0;"><b>CI/CD Pipeline</b></p>
+      <p style="font-size: 11pt; color: #AAB7B8; margin: 2pt 0 0 0;">GitHub Actions for automated build, push, and deploy</p>
+    </div>
+  </div>
+  <div class="item">
+    <div class="num-box"><p style="color: #FFFFFF; font-size: 14pt; margin: 0;"><b>4</b></p></div>
+    <div>
+      <p style="font-size: 15pt; color: #1C2833; margin: 0;"><b>Monitoring</b></p>
+      <p style="font-size: 11pt; color: #AAB7B8; margin: 2pt 0 0 0;">Install metrics-server, Prometheus, and Grafana dashboards</p>
+    </div>
+  </div>
+  <div class="item">
+    <div class="num-box"><p style="color: #FFFFFF; font-size: 14pt; margin: 0;"><b>5</b></p></div>
+    <div>
+      <p style="font-size: 15pt; color: #1C2833; margin: 0;"><b>Kafka Consumers</b></p>
+      <p style="font-size: 11pt; color: #AAB7B8; margin: 2pt 0 0 0;">Add event consumers for notifications, analytics, audit logs</p>
+    </div>
+  </div>
+</div>
+</body></html>
